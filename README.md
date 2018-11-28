@@ -39,12 +39,13 @@ Where `ships` is an array:
   ]
 ```
 
-A `cell` is an array of two int between 1 and 10 representing the row and the column: eg: [1, 1];
-`direction`: if the ship is place horizontally (x) or vertically (y).
+A `cell` is an array of two int between 1 and 10 representing the row and the column. eg: `[1, 1]`
+
+`direction`: if the ship is place horizontally (`x`) or vertically (`y`).
 
 To play, a player must emit a message with the selected `cell`:
 
-socket.emit('played', cell);
+`socket.emit('played', cell);`
 
 ## EMIT
 All emitted event from the server follow this syntax:
