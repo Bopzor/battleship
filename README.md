@@ -8,33 +8,36 @@ To set his troups, a player must emit a message :
 
 `socket.emit('setTroups', ships)`
 
-Where `ships` is an array: [
-  {
-    start: cell,
-    direction: 'x' || 'y',
-    size: 5,
-  },
-  {
-    start: cell,
-    direction: 'x' || 'y',
-    size: 4,
-  },
-  {
-    start: cell,
-    direction: 'x' || 'y',
-    size: 3,
-  },
-  {
-    start: cell,
-    direction: 'x' || 'y',
-    size: 3,
-  },
-  {
-    start: cell,
-    direction: 'x' || 'y',
-    size: 2,
-  },
-]
+Where `ships` is an array:
+```
+  [
+    {
+      start: cell,
+      direction: 'x' || 'y',
+      size: 5,
+    },
+    {
+      start: cell,
+      direction: 'x' || 'y',
+      size: 4,
+    },
+    {
+      start: cell,
+      direction: 'x' || 'y',
+      size: 3,
+    },
+    {
+      start: cell,
+      direction: 'x' || 'y',
+      size: 3,
+    },
+    {
+      start: cell,
+      direction: 'x' || 'y',
+      size: 2,
+    },
+  ]
+```
 
 A `cell` is an array of two int between 1 and 10 representing the row and the column: eg: [1, 1];
 `direction`: if the ship is place horizontally (x) or vertically (y).
