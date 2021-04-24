@@ -4,9 +4,13 @@ Backend for battleship game I made to learn socket.io.
 
 ## ON
 
+To get current game, emit a message:
+
+`socket.emit('getGame');`
+
 To set his troups, a player must emit a message :
 
-`socket.emit('setTroups', ships)`
+`socket.emit('setTroups', ships);`
 
 Where `ships` is an array:
 ```
@@ -85,6 +89,7 @@ When the two players have set their troups, the server send a message to all con
 ```
 {
   action: 'start',
+  game: Game,
 }
 ```
 

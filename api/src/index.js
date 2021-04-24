@@ -103,7 +103,7 @@ io.on('connect', (socket) => {
       return;
     }
 
-    io.emit('message', { action: 'start' });
+    io.emit('message', { action: 'start', game });
   });
 
   socket.on('played', (cell) => {
@@ -159,6 +159,10 @@ io.on('connect', (socket) => {
 
         break;
     }
+  });
+
+  socket.on('getGame', () => {
+    io.emit('message', { action: 'game', game });
   });
 
   socket.on('disconnect', () => {
