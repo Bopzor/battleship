@@ -62,6 +62,16 @@ module.exports = class Game {
     }
   }
 
+  getShip(socket, cell) {
+    if (socket === this.players[0].socket) {
+      return this.shipsPlayerTwo.belongsToShip(cell);
+    }
+
+    if (socket === this.players[1].socket) {
+      return this.shipsPlayerOne.belongsToShip(cell);
+    }
+  }
+
   play(socket, cell) {
     const opponent = this.opponent(socket);
 

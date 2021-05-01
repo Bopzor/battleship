@@ -124,7 +124,7 @@ io.on('connect', (socket) => {
         break;
 
       case 'sank':
-        io.emit('message', { action: 'sank', cell });
+        io.emit('message', { action: 'sank', cell, ship: game.getShip(socket.id, cell) });
 
 
         if (game.win(socket.id)) {

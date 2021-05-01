@@ -1,0 +1,13 @@
+.meadow {
+  display: grid;
+  grid-template-columns: repeat(10, 30px);
+  grid-template-rows: repeat(10, 30px);
+  column-gap: 1px;
+  row-gap: 1px;
+}
+
+.plot {
+  height: 30px;
+  width: 30px;
+  background-color: #007F0FAF;
+}

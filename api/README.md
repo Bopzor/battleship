@@ -108,6 +108,7 @@ When a player sank a ship, the server send a message and wait for other player t
 {
   action: 'sank',
   cell,
+  ship,
 }
 ```
 
