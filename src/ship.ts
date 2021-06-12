@@ -29,7 +29,9 @@ export class Ship {
 
       if (isHorizontal(direction)) {
         cell.x += i;
-      } else if (isVertical(direction)) {
+      }
+
+      if (isVertical(direction)) {
         cell.y += i;
       }
 

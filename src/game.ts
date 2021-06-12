@@ -66,6 +66,10 @@ export class Game {
       throw new Error('Game is not started.');
     }
 
+    if (this.isGameFinished()) {
+      throw new Error('The game is finished.');
+    }
+
     if (!this.isPlayerTurn(nick)) {
       throw new Error(`It is not ${nick}'s turn.`);
     }
@@ -116,6 +120,10 @@ export class Game {
     return areArraysEquivalent(shipsSizes, this.requiredShipsSizes);
   }
 
+  private isGameFinished(): boolean {
+    return this.players.some(({ board }) => board.areAllShipsSank());
+  }
+
   private isShipInBounds(ship: Ship): boolean {
     return ship.isInBounds(this.size);
   }
@@ -136,10 +144,6 @@ export class Game {
 
   private getOpponent(nick: string): Player {
     const idx = this.players.findIndex((p) => p.nick === nick);
-
-    if (idx < 0) {
-      throw new Error(`Player with nick ${nick} is not in the game.`);
-    }
 
     return this.players[(idx + 1) % 2];
   }

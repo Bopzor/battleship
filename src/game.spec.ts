@@ -114,11 +114,14 @@ describe('Battleship', () => {
   });
 
   describe('Game execution flow', () => {
-    const createStartedGame = () => {
-      const game = createInitializedGame();
+    const createStartedGame = (
+      ships = defaultShips,
+      ...initialGameValue: Parameters<typeof createInitializedGame>
+    ) => {
+      const game = createInitializedGame(...initialGameValue);
 
-      game.setShips('player1', defaultShips);
-      game.setShips('player2', defaultShips);
+      game.setShips('player1', ships);
+      game.setShips('player2', ships);
 
       return game;
     };
@@ -163,6 +166,15 @@ describe('Battleship', () => {
       expect(() => game.shoot('player1', { x: 0, y: 10 })).toThrow('Shot is out of bounds.');
       expect(() => game.shoot('player1', { x: -5, y: 1 })).toThrow('Shot is out of bounds.');
       expect(() => game.shoot('player1', { x: 5, y: -1 })).toThrow('Shot is out of bounds.');
+    });
+
+    it('prevents to shoot when the game is finished', () => {
+      const ships = [new Ship({ x: 0, y: 0 }, 'horizontal', 1)];
+      const game = createStartedGame(ships, 10, [1]);
+
+      game.shoot('player1', { x: 0, y: 0 });
+
+      expect(() => game.shoot('player2', { x: 0, y: 1 })).toThrow('The game is finished.');
     });
   });
 });
