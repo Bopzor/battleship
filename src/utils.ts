@@ -1,4 +1,4 @@
-import { Cell } from './Cell';
+import { Cell } from './cell';
 import { Direction } from './ship';
 
 export const isHorizontal = (direction: Direction): boolean => {

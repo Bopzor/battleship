@@ -1,7 +1,9 @@
 import expect from 'expect';
 
+import { Cell } from './cell';
 import { Game } from './game';
 import { Ship } from './ship';
+import { ShotResult } from './ShotResult';
 
 describe('Battleship', () => {
   const createInitializedGame = (size = 10, requiredShipsSizes = [2, 3]) => {
@@ -12,6 +14,11 @@ describe('Battleship', () => {
 
     return game;
   };
+
+  const defaultShips: Ship[] = [
+    new Ship({ x: 0, y: 0 }, 'horizontal', 2),
+    new Ship({ x: 3, y: 3 }, 'vertical', 3),
+  ];
 
   describe('Game initialization', () => {
     it('creates a game and adds players', () => {
@@ -31,11 +38,6 @@ describe('Battleship', () => {
   });
 
   describe('Ships placement', () => {
-    const defaultShips: Ship[] = [
-      new Ship({ x: 0, y: 0 }, 'horizontal', 2),
-      new Ship({ x: 3, y: 3 }, 'vertical', 3),
-    ];
-
     it("places the player's ships on his board", () => {
       const game = createInitializedGame();
 
@@ -109,5 +111,58 @@ describe('Battleship', () => {
       (...ships: Ship[]) => {
         expect(() => game.setShips(nick, ships)).toThrow(errorMessage);
       };
+  });
+
+  describe('Game execution flow', () => {
+    const createStartedGame = () => {
+      const game = createInitializedGame();
+
+      game.setShips('player1', defaultShips);
+      game.setShips('player2', defaultShips);
+
+      return game;
+    };
+
+    it('plays a turn', () => {
+      const game = createStartedGame();
+
+      const turn = (cell: Cell, shotResult: ShotResult) => {
+        game.shoot('player1', { x: 1, y: 1 });
+        expect(game.shoot('player2', cell)).toEqual(shotResult);
+      };
+
+      turn({ x: 1, y: 1 }, ShotResult.missed);
+      turn({ x: 0, y: 0 }, ShotResult.hit);
+      turn({ x: 1, y: 0 }, ShotResult.sank);
+
+      turn({ x: 3, y: 3 }, ShotResult.hit);
+      turn({ x: 3, y: 4 }, ShotResult.hit);
+      turn({ x: 3, y: 5 }, ShotResult.sank);
+    });
+
+    it('prevents to shoot if both players ships are not set', () => {
+      const game = createInitializedGame();
+
+      expect(() => game.shoot('player2', { x: 1, y: 1 })).toThrow('Game is not started.');
+
+      game.setShips('player1', defaultShips);
+
+      expect(() => game.shoot('player2', { x: 1, y: 1 })).toThrow('Game is not started.');
+    });
+
+    it("prevents to shoot if it's not the player's turn", () => {
+      const game = createStartedGame();
+
+      expect(() => game.shoot('player2', { x: 1, y: 1 })).toThrow("It is not player2's turn.");
+    });
+
+    it('prevents to shoot a cell that is not in game bound ', () => {
+      const game = createStartedGame();
+
+      expect(() => game.shoot('player1', { x: 10, y: 1 })).toThrow('Shot is out of bounds.');
+      expect(() => game.shoot('player1', { x: 0, y: 10 })).toThrow('Shot is out of bounds.');
+      expect(() => game.shoot('player1', { x: -5, y: 1 })).toThrow('Shot is out of bounds.');
+      expect(() => game.shoot('player1', { x: 5, y: -1 })).toThrow('Shot is out of bounds.');
+    });
   });
 });

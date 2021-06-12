@@ -1,6 +1,8 @@
 import { Board } from './board';
+import { Cell } from './cell';
 import { Ship } from './ship';
-import { areArraysEquivalent, isHorizontal, isVertical } from './utils';
+import { ShotResult } from './ShotResult';
+import { areArraysEquivalent } from './utils';
 
 type Player = {
   nick: string;
@@ -9,6 +11,7 @@ type Player = {
 
 export class Game {
   players: Player[] = [];
+  private currentPlayer?: Player;
 
   constructor(private size: number, private requiredShipsSizes: number[]) {}
 
@@ -29,10 +32,47 @@ export class Game {
     this.assertShipsCanBeSet(player, ships);
 
     player.board.ships = ships;
+
+    if (this.isStarted) {
+      this.currentPlayer = this.players[0];
+    }
+  }
+
+  shoot(nick: string, cell: Cell): ShotResult {
+    this.assertPlayerCanShoot(nick, cell);
+
+    const opponent = this.getOpponent(nick);
+    const shotResult = opponent.board.shoot(cell);
+
+    this.currentPlayer = opponent;
+
+    return shotResult;
   }
 
   getPlayerShips(player: string): Ship[] {
     return this.getPlayer(player).board.ships;
+  }
+
+  private isPlayerTurn(nick: string): boolean {
+    return this.currentPlayer?.nick === nick;
+  }
+
+  private get isStarted(): boolean {
+    return this.players[0].board.ships.length > 0 && this.players[1].board.ships.length > 0;
+  }
+
+  private assertPlayerCanShoot(nick: string, cell: Cell) {
+    if (!this.isStarted) {
+      throw new Error('Game is not started.');
+    }
+
+    if (!this.isPlayerTurn(nick)) {
+      throw new Error(`It is not ${nick}'s turn.`);
+    }
+
+    if (!this.isCellInBounds(cell)) {
+      throw new Error('Shot is out of bounds.');
+    }
   }
 
   private assertShipsCanBeSet(player: Player, ships: Ship[]) {
@@ -77,13 +117,11 @@ export class Game {
   }
 
   private isShipInBounds(ship: Ship): boolean {
-    // prettier-ignore
-    const { position: { x, y }, size, direction } = ship;
+    return ship.isInBounds(this.size);
+  }
 
-    const maxX = isHorizontal(direction) ? x + size : x;
-    const maxY = isVertical(direction) ? y + size : y;
-
-    return maxX < this.size && maxY < this.size && x >= 0 && y >= 0;
+  private isCellInBounds({ x, y }: Cell): boolean {
+    return x < this.size && y < this.size && x >= 0 && y >= 0;
   }
 
   private getPlayer(nick: string): Player {
@@ -94,5 +132,15 @@ export class Game {
     }
 
     return player;
+  }
+
+  private getOpponent(nick: string): Player {
+    const idx = this.players.findIndex((p) => p.nick === nick);
+
+    if (idx < 0) {
+      throw new Error(`Player with nick ${nick} is not in the game.`);
+    }
+
+    return this.players[(idx + 1) % 2];
   }
 }

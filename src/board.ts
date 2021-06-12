@@ -1,4 +1,4 @@
-import { Cell } from './Cell';
+import { Cell } from './cell';
 import { Ship } from './ship';
 import { ShotResult } from './ShotResult';
 import { cellsContain } from './utils';
