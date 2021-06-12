@@ -1,6 +1,8 @@
 import expect from 'expect';
 
-import { Board, Ship, ShotResult } from './battleship';
+import { Board } from './board';
+import { Ship } from './ship';
+import { ShotResult } from './ShotResult';
 
 before(() => {
   // clear terminal stdout
@@ -9,23 +11,15 @@ before(() => {
 
 describe('Battleship', () => {
   const defaultShips: Ship[] = [
-    {
-      position: { x: 0, y: 0 },
-      size: 2,
-      direction: 'horizonal',
-    },
-    {
-      position: { x: 3, y: 3 },
-      size: 3,
-      direction: 'vertical',
-    },
+    new Ship({ x: 0, y: 0 }, 'horizontal', 2),
+    new Ship({ x: 3, y: 3 }, 'vertical', 3),
   ];
 
   describe('ships placement', () => {
     it('places the ships in the board', () => {
       const board = new Board();
 
-      board.setShips(defaultShips);
+      board.ships = defaultShips;
 
       // prettier-ignore
       {
@@ -48,7 +42,7 @@ describe('Battleship', () => {
     it('sinks a ship', () => {
       const board = new Board();
 
-      board.setShips(defaultShips);
+      board.ships = defaultShips;
 
       expect(board.shoot({ x: 9, y: 0 })).toEqual(ShotResult.missed);
       expect(board.shoot({ x: 0, y: 0 })).toEqual(ShotResult.hit);
@@ -60,7 +54,7 @@ describe('Battleship', () => {
     it('tells when all ships are sank', () => {
       const board = new Board();
 
-      board.setShips(defaultShips);
+      board.ships = defaultShips;
 
       expect(board.areAllShipsSank()).toBe(false);
 
