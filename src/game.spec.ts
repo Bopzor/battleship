@@ -1,13 +1,23 @@
 import expect from 'expect';
+import * as jest from 'jest-mock';
 
 import { Cell } from './cell';
 import { Game } from './game';
 import { Ship } from './ship';
 import { ShotResult } from './ShotResult';
 
+before(() => {
+  // clear terminal stdout
+  process.stdout.write('\x1Bc');
+});
+
 describe('Battleship', () => {
-  const createInitializedGame = (size = 10, requiredShipsSizes = [2, 3]) => {
-    const game = new Game(size, requiredShipsSizes);
+  const createInitializedGame = (
+    size = 10,
+    requiredShipsSizes = [2, 3],
+    triggerEvent = jest.fn(),
+  ) => {
+    const game = new Game(size, requiredShipsSizes, triggerEvent);
 
     game.addPlayer('player1');
     game.addPlayer('player2');
@@ -22,10 +32,15 @@ describe('Battleship', () => {
 
   describe('Game initialization', () => {
     it('creates a game and adds players', () => {
-      const game = new Game(10, []);
+      const triggerEventMock = jest.fn();
+
+      const game = new Game(10, [], triggerEventMock);
 
       game.addPlayer('player1');
+      expect(triggerEventMock).toHaveBeenLastCalledWith({ type: 'PLAYER_ADDED', nick: 'player1' });
+
       game.addPlayer('player2');
+      expect(triggerEventMock).toHaveBeenLastCalledWith({ type: 'PLAYER_ADDED', nick: 'player2' });
 
       expect(game.players).toHaveLength(2);
     });
@@ -39,12 +54,14 @@ describe('Battleship', () => {
 
   describe('Ships placement', () => {
     it("places the player's ships on his board", () => {
-      const game = createInitializedGame();
+      const triggerEventMock = jest.fn();
+      const game = createInitializedGame(undefined, undefined, triggerEventMock);
 
       game.setShips('player1', defaultShips);
 
       const ships = game.getPlayerShips('player1');
 
+      expect(triggerEventMock).toHaveBeenLastCalledWith({ type: 'SHIPS_SET', nick: 'player1' });
       expect(ships).toHaveLength(2);
       expect(game.getPlayerShips('player1')).toEqual(ships);
     });
@@ -127,11 +144,25 @@ describe('Battleship', () => {
     };
 
     it('plays a turn', () => {
-      const game = createStartedGame();
+      const triggerEventMock = jest.fn();
+      const game = createStartedGame(undefined, undefined, undefined, triggerEventMock);
 
       const turn = (cell: Cell, shotResult: ShotResult) => {
         game.shoot('player1', { x: 1, y: 1 });
+        expect(triggerEventMock).toHaveBeenLastCalledWith({
+          type: 'SHOT',
+          nick: 'player1',
+          cell: { x: 1, y: 1 },
+          shotResult: ShotResult.missed,
+        });
+
         expect(game.shoot('player2', cell)).toEqual(shotResult);
+        expect(triggerEventMock).toHaveBeenCalledWith({
+          type: 'SHOT',
+          nick: 'player2',
+          cell,
+          shotResult,
+        });
       };
 
       turn({ x: 1, y: 1 }, ShotResult.missed);
@@ -141,6 +172,8 @@ describe('Battleship', () => {
       turn({ x: 3, y: 3 }, ShotResult.hit);
       turn({ x: 3, y: 4 }, ShotResult.hit);
       turn({ x: 3, y: 5 }, ShotResult.sank);
+
+      expect(triggerEventMock).toHaveBeenLastCalledWith({ type: 'END_OF_GAME', winner: 'player2' });
     });
 
     it('prevents to shoot if both players ships are not set', () => {

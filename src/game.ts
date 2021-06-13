@@ -1,5 +1,9 @@
 import { Board } from './board';
 import { Cell } from './cell';
+import { EndOfGameEvent } from './events/EndOfGameEvent';
+import { PlayerAddedEvent } from './events/PlayerAddedEvent';
+import { ShipsSetEvent } from './events/ShipsSetEvent';
+import { ShotEvent } from './events/ShotEvent';
 import { Ship } from './ship';
 import { ShotResult } from './ShotResult';
 import { areArraysEquivalent } from './utils';
@@ -13,7 +17,11 @@ export class Game {
   players: Player[] = [];
   private currentPlayer?: Player;
 
-  constructor(private size: number, private requiredShipsSizes: number[]) {}
+  constructor(
+    private size: number,
+    private requiredShipsSizes: number[],
+    private triggerEvent: (event: unknown) => void,
+  ) {}
 
   addPlayer(nick: string): void {
     if (this.players.length === 2) {
@@ -24,6 +32,8 @@ export class Game {
       nick,
       board: new Board(),
     });
+
+    this.triggerEvent(new PlayerAddedEvent(nick));
   }
 
   setShips(nick: string, ships: Ship[]): void {
@@ -32,6 +42,8 @@ export class Game {
     this.assertShipsCanBeSet(player, ships);
 
     player.board.ships = ships;
+
+    this.triggerEvent(new ShipsSetEvent(nick));
 
     if (this.isStarted) {
       this.currentPlayer = this.players[0];
@@ -45,6 +57,12 @@ export class Game {
     const shotResult = opponent.board.shoot(cell);
 
     this.currentPlayer = opponent;
+
+    this.triggerEvent(new ShotEvent(nick, cell, shotResult));
+
+    if (opponent.board.areAllShipsSank()) {
+      this.triggerEvent(new EndOfGameEvent(nick));
+    }
 
     return shotResult;
   }
