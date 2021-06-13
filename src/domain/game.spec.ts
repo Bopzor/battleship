@@ -66,6 +66,15 @@ describe('Battleship', () => {
       expect(game.getPlayerShips('player1')).toEqual(ships);
     });
 
+    it('allows the player to set his ships before another player joins', () => {
+      const game = new Game(10, [2, 3], jest.fn());
+
+      game.addPlayer('player1');
+      game.setShips('player1', defaultShips);
+
+      expect(game.getPlayerShips('player1')).toEqual(defaultShips);
+    });
+
     it('prevents to set ships of an unexisting player', () => {
       const game = createInitializedGame();
 

@@ -4,17 +4,13 @@ import { EndOfGameEvent } from './events/EndOfGameEvent';
 import { PlayerAddedEvent } from './events/PlayerAddedEvent';
 import { ShipsSetEvent } from './events/ShipsSetEvent';
 import { ShotEvent } from './events/ShotEvent';
+import { Player } from './Player';
 import { Ship } from './ship';
 import { ShotResult } from './ShotResult';
 import { areArraysEquivalent } from './utils';
 
-type Player = {
-  nick: string;
-  board: Board;
-};
-
 export class Game {
-  players: Player[] = [];
+  public players: Player[] = [];
   private currentPlayer?: Player;
 
   constructor(
@@ -67,6 +63,16 @@ export class Game {
     return shotResult;
   }
 
+  getPlayer(nick: string): Player {
+    const player = this.players.find((p) => p.nick === nick);
+
+    if (!player) {
+      throw new Error(`Player with nick ${nick} is not in the game.`);
+    }
+
+    return player;
+  }
+
   getPlayerShips(player: string): Ship[] {
     return this.getPlayer(player).board.ships;
   }
@@ -76,7 +82,7 @@ export class Game {
   }
 
   private get isStarted(): boolean {
-    return this.players[0].board.ships.length > 0 && this.players[1].board.ships.length > 0;
+    return this.players[0].board.ships.length > 0 && this.players[1]?.board.ships.length > 0;
   }
 
   private assertPlayerCanShoot(nick: string, cell: Cell) {
@@ -148,16 +154,6 @@ export class Game {
 
   private isCellInBounds({ x, y }: Cell): boolean {
     return x < this.size && y < this.size && x >= 0 && y >= 0;
-  }
-
-  private getPlayer(nick: string): Player {
-    const player = this.players.find((p) => p.nick === nick);
-
-    if (!player) {
-      throw new Error(`Player with nick ${nick} is not in the game.`);
-    }
-
-    return player;
   }
 
   private getOpponent(nick: string): Player {
