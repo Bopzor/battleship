@@ -1,12 +1,22 @@
 import { createServer } from 'http';
+import { inject, injectable } from 'inversify';
 import { Server, Socket } from 'socket.io';
 
 import { Game } from '../domain/game';
 import { Player } from '../domain/Player';
 import { Ship } from '../domain/ship';
 
+export const GameRepositorySymbol = Symbol.for('GameRepository');
+
+export interface GameRepository {
+  getGame(): Game | undefined;
+  setGame(game: Game): void;
+}
+
+@injectable()
 export class WebSocketServer {
-  public game?: Game;
+  @inject(GameRepositorySymbol) private gameRepository!: GameRepository;
+
   private server = createServer();
   private socketServer = new Server(this.server);
   private players: Record<string, Player> = {};
@@ -15,9 +25,8 @@ export class WebSocketServer {
     this.socketServer.on('connection', this.handleConnection.bind(this));
   }
 
-  reset() {
-    this.game = undefined;
-    this.players = {};
+  get game() {
+    return this.gameRepository.getGame();
   }
 
   setShips(nick: string, ships: Ship[]) {
@@ -52,13 +61,19 @@ export class WebSocketServer {
     registerHandler('JOIN_GAME', this.handleJoinGame.bind(this));
     registerHandler('SET_NICK', this.handleSetNick.bind(this));
     registerHandler('SET_SHIPS', this.handleSetShips.bind(this));
+
+    socket.on('disconnect', () => {
+      delete this.players[socket.id];
+    });
   }
 
   private handleCreateGame(socket: Socket, { size, requiredShipsSizes }: any) {
-    this.game = new Game(size, requiredShipsSizes, () => {});
-    this.game.addPlayer(socket.id);
+    const game = new Game(size, requiredShipsSizes, () => {});
 
-    this.players[socket.id] = this.game.getPlayer(socket.id);
+    this.gameRepository.setGame(game);
+    game.addPlayer(socket.id);
+
+    this.players[socket.id] = game.getPlayer(socket.id);
   }
 
   private handleJoinGame(socket: Socket) {

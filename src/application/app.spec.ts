@@ -1,9 +1,14 @@
+// eslint-disable-next-line simple-import-sort/imports
+import 'reflect-metadata';
+
 import expect from 'expect';
 import io, { Socket } from 'socket.io-client';
 
 import { Ship } from '../domain/ship';
 
-import { WebSocketServer } from './WebSocketServer';
+import { WebSocketServer, GameRepository, GameRepositorySymbol } from './WebSocketServer';
+import { Container, injectable } from 'inversify';
+import { Game } from '../domain/game';
 
 class WebSocketClient {
   private socket: Socket;
@@ -49,11 +54,34 @@ class WebSocketClient {
   }
 }
 
-describe.only('Websocket', () => {
+@injectable()
+export class InMemoryGameRepository implements GameRepository {
+  private game?: Game;
+
+  getGame(): Game | undefined {
+    return this.game;
+  }
+
+  setGame(game: Game): void {
+    this.game = game;
+  }
+
+  reset() {
+    this.game = undefined;
+  }
+}
+
+describe('Websocket', () => {
   let socketServer: WebSocketServer;
+  const gameRepository = new InMemoryGameRepository();
 
   before(async () => {
-    socketServer = new WebSocketServer();
+    const myContainer = new Container();
+
+    myContainer.bind<GameRepository>(GameRepositorySymbol).to(InMemoryGameRepository);
+    myContainer.bind<WebSocketServer>(WebSocketServer).to(WebSocketServer);
+
+    socketServer = myContainer.get(WebSocketServer);
 
     await socketServer.listen(3000, 'localhost');
   });
@@ -63,7 +91,7 @@ describe.only('Websocket', () => {
   });
 
   beforeEach(() => {
-    socketServer.reset();
+    gameRepository.reset();
   });
 
   it('creates a websocket server and accept connections', async () => {
