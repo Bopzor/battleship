@@ -1,91 +1,38 @@
-import { Board } from './board';
 import { Cell } from './cell';
-import { EndOfGameEvent } from './events/EndOfGameEvent';
-import { PlayerAddedEvent } from './events/PlayerAddedEvent';
-import { ShipsSetEvent } from './events/ShipsSetEvent';
-import { ShotEvent } from './events/ShotEvent';
 import { Player } from './Player';
 import { Ship } from './ship';
-import { ShotResult } from './ShotResult';
 import { areArraysEquivalent } from './utils';
 
+export interface GameRepository {
+  getGame(): Game | undefined;
+  setGame(game: Game): void;
+}
+
+export const GameRepositorySymbol = Symbol.for('GameRepository');
+
 export class Game {
-  public players: Player[] = [];
   private currentPlayer?: Player;
+  private players: Player[] = [];
 
-  constructor(
-    private size: number,
-    private requiredShipsSizes: number[],
-    private triggerEvent: (event: unknown) => void,
-  ) {}
+  constructor(private size: number, private requiredShipsSizes: number[]) {}
 
-  addPlayer(nick: string): void {
-    if (this.players.length === 2) {
-      throw new Error('There already is two players.');
-    }
+  get isStarted(): boolean {
+    const hasShips = (player: Player) => {
+      return player.board.ships.length > 0;
+    };
 
-    this.players.push({
-      nick,
-      board: new Board(),
-    });
-
-    this.triggerEvent(new PlayerAddedEvent(nick));
+    return this.players.length === 2 && this.players.every(hasShips);
   }
 
-  setShips(nick: string, ships: Ship[]): void {
-    const player = this.getPlayer(nick);
-
-    this.assertShipsCanBeSet(player, ships);
-
-    player.board.ships = ships;
-
-    this.triggerEvent(new ShipsSetEvent(nick));
-
-    if (this.isStarted) {
-      this.currentPlayer = this.players[0];
-    }
+  setCurrentPlayer(player: Player) {
+    this.currentPlayer = player;
   }
 
-  shoot(nick: string, cell: Cell): ShotResult {
-    this.assertPlayerCanShoot(nick, cell);
-
-    const opponent = this.getOpponent(nick);
-    const shotResult = opponent.board.shoot(cell);
-
-    this.currentPlayer = opponent;
-
-    this.triggerEvent(new ShotEvent(nick, cell, shotResult));
-
-    if (opponent.board.areAllShipsSank()) {
-      this.triggerEvent(new EndOfGameEvent(nick));
-    }
-
-    return shotResult;
+  addPlayer(player: Player) {
+    this.players.push(player);
   }
 
-  getPlayer(nick: string): Player {
-    const player = this.players.find((p) => p.nick === nick);
-
-    if (!player) {
-      throw new Error(`Player with nick ${nick} is not in the game.`);
-    }
-
-    return player;
-  }
-
-  getPlayerShips(player: string): Ship[] {
-    return this.getPlayer(player).board.ships;
-  }
-
-  private isPlayerTurn(nick: string): boolean {
-    return this.currentPlayer?.nick === nick;
-  }
-
-  private get isStarted(): boolean {
-    return this.players[0].board.ships.length > 0 && this.players[1]?.board.ships.length > 0;
-  }
-
-  private assertPlayerCanShoot(nick: string, cell: Cell) {
+  assertPlayerCanShoot(nick: string, cell: Cell) {
     if (!this.isStarted) {
       throw new Error('Game is not started.');
     }
@@ -103,7 +50,7 @@ export class Game {
     }
   }
 
-  private assertShipsCanBeSet(player: Player, ships: Ship[]) {
+  assertShipsCanBeSet(player: Player, ships: Ship[]) {
     if (this.arePlayerShipsSet(player)) {
       throw new Error('Ships are already set.');
     }
@@ -119,6 +66,10 @@ export class Game {
     if (this.areShipsOverlaping(ships)) {
       throw new Error('Ships formation is not allowed, some are overlaping.');
     }
+  }
+
+  private isPlayerTurn(nick: string): boolean {
+    return this.currentPlayer?.nick === nick;
   }
 
   private areShipsOverlaping(ships: Ship[]): boolean {
@@ -156,7 +107,7 @@ export class Game {
     return x < this.size && y < this.size && x >= 0 && y >= 0;
   }
 
-  private getOpponent(nick: string): Player {
+  getOpponent(nick: string): Player {
     const idx = this.players.findIndex((p) => p.nick === nick);
 
     return this.players[(idx + 1) % 2];

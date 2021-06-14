@@ -1,93 +1,56 @@
-// eslint-disable-next-line simple-import-sort/imports
-import 'reflect-metadata';
-
 import expect from 'expect';
-import io, { Socket } from 'socket.io-client';
+import { createServer, Server } from 'http';
+import { Container } from 'inversify';
+import * as jest from 'jest-mock';
 
+import { Board } from '../domain/board';
+import { Game, GameRepository } from '../domain/game';
+import { GameService, Notifier, NotifierSymbol } from '../domain/GameService';
+import { PlayerRepository, PlayerRepositorySymbol } from '../domain/Player';
 import { Ship } from '../domain/ship';
+import { ShotResult } from '../domain/ShotResult';
+import { InMemoryGameRepository } from '../test/InMemoryGameRepository';
+import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
+import { StubNotifier } from '../test/StubNotifier';
+import { WebSocketClient } from '../test/WebSocketClient';
 
-import { WebSocketServer, GameRepository, GameRepositorySymbol } from './WebSocketServer';
-import { Container, injectable } from 'inversify';
-import { Game } from '../domain/game';
+import { GameRepositorySymbol, HttpServerSymbol, WebSocketServer } from './WebSocketServer';
 
-class WebSocketClient {
-  private socket: Socket;
-
-  constructor(port: number) {
-    this.socket = io(`ws://localhost:${port}`);
-  }
-
-  setNick(nick: string) {
-    return this.emit('SET_NICK', nick);
-  }
-
-  setShips(ships: Ship[]) {
-    return this.emit('SET_SHIPS', ships);
-  }
-
-  createGame(size: number, requiredShipsSizes: number[]) {
-    return this.emit('CREATE_GAME', { size, requiredShipsSizes });
-  }
-
-  joinGame() {
-    return this.emit('JOIN_GAME');
-  }
-
-  onConnect() {
-    return new Promise<void>((resolve) => this.socket.on('connect', resolve));
-  }
-
-  close() {
-    this.socket.close();
-  }
-
-  private async emit(event: string, payload?: unknown) {
-    const result = await new Promise<{ status: 'ok' } | { status: 'ko'; error: string }>(
-      (resolve) => this.socket.emit(event, payload, resolve),
-    );
-
-    if (result?.status !== 'ok') {
-      throw new Error(result.error ?? 'WebSocketClient emit error');
-    }
-
-    return result;
-  }
-}
-
-@injectable()
-export class InMemoryGameRepository implements GameRepository {
-  private game?: Game;
-
-  getGame(): Game | undefined {
-    return this.game;
-  }
-
-  setGame(game: Game): void {
-    this.game = game;
-  }
-
-  reset() {
-    this.game = undefined;
-  }
-}
+const port = 30001;
 
 describe('Websocket', () => {
+  let container: Container;
+
+  let server: Server;
   let socketServer: WebSocketServer;
   const gameRepository = new InMemoryGameRepository();
 
-  before(async () => {
-    const myContainer = new Container();
+  let gameService: GameService;
 
-    myContainer.bind<GameRepository>(GameRepositorySymbol).to(InMemoryGameRepository);
-    myContainer.bind<WebSocketServer>(WebSocketServer).to(WebSocketServer);
-
-    socketServer = myContainer.get(WebSocketServer);
-
-    await socketServer.listen(3000, 'localhost');
+  before((done) => {
+    server = createServer();
+    server.listen(port, 'localhost', done);
   });
 
-  after(async () => {
-    await socketServer.close();
+  after(function (done) {
+    this.timeout(1000000);
+    server.close(done);
+  });
+
+  beforeEach(() => {
+    gameService = {} as GameService;
+
+    container = new Container();
+
+    container.bind<Server>(HttpServerSymbol).toConstantValue(server);
+    container.bind<GameService>(GameService).toConstantValue(gameService);
+
+    container.bind<GameRepository>(GameRepositorySymbol).to(InMemoryGameRepository);
+    container.bind<PlayerRepository>(PlayerRepositorySymbol).to(InMemoryPlayerReposititory);
+    container.bind<WebSocketServer>(WebSocketServer).to(WebSocketServer);
+    container.bind<Notifier>(NotifierSymbol).to(StubNotifier);
+
+    socketServer = container.get(WebSocketServer);
   });
 
   beforeEach(() => {
@@ -95,7 +58,7 @@ describe('Websocket', () => {
   });
 
   it('creates a websocket server and accept connections', async () => {
-    const socket = new WebSocketClient(3000);
+    const socket = new WebSocketClient(port);
 
     await expect(socket.onConnect()).resolves.toBe(undefined);
 
@@ -103,75 +66,140 @@ describe('Websocket', () => {
   });
 
   it("creates a game and add the player on player's connection", async () => {
-    expect(socketServer.game).toBeUndefined();
+    const game = new Game(10, []);
+    mockCreateGame(game);
+    gameRepository.setGame(game);
 
-    const socket = await createInitializedGame();
+    mockAddPlayer((nick) => ({ nick, board: new Board() }));
 
-    const players = socketServer.getPlayers();
-    expect(players).toHaveLength(1);
-    expect(players[0]).toMatchObject({ nick: expect.any(String) });
+    const player1 = await createPlayerSocket();
 
-    socket.close();
+    await player1.createGame(10, [2, 3]);
+
+    expect(socketServer.players[player1.id]).toBeTruthy();
+
+    await player1.close();
   });
 
   it('allows a player to set his nick', async () => {
-    const player1 = await createInitializedGame();
-    const player2 = await createPlayerSocket();
-    await player2.joinGame();
+    const game = new Game(10, []);
+    mockCreateGame(game);
+    gameRepository.setGame(game);
+
+    mockAddPlayer((nick) => ({ nick, board: new Board() }));
+
+    const player1 = await createPlayerSocket();
+
+    await player1.createGame(10, [2, 3]);
 
     await player1.setNick('player1');
-    await player2.setNick('player2');
 
-    const players = socketServer.getPlayers();
+    expect(socketServer.players[player1.id].nick).toEqual('player1');
 
-    expect(players[0]).toHaveProperty('nick', 'player1');
-    expect(players[1]).toHaveProperty('nick', 'player2');
-
-    player1.close();
-    player2.close();
+    await player1.close();
   });
 
   it('prevents a player to use a nick that is already taken', async () => {
-    const player1 = await createInitializedGame();
+    const game = new Game(10, []);
+    mockCreateGame(game);
+    gameRepository.setGame(game);
+
+    mockAddPlayer((nick) => ({ nick, board: new Board() }));
+
+    const player1 = await createPlayerSocket();
     const player2 = await createPlayerSocket();
+
+    await player1.createGame(10, [2, 3]);
     await player2.joinGame();
 
     await player1.setNick('player1');
+
     await expect(player1.setNick('player1')).rejects.toThrow('player1 is already taken');
     await expect(player2.setNick('player1')).rejects.toThrow('player1 is already taken');
 
-    player1.close();
-    player2.close();
+    await player1.close();
+    await player2.close();
   });
 
   it('allows a player to set his ships', async () => {
+    const game = new Game(10, []);
+    mockCreateGame(game);
+    gameRepository.setGame(game);
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    mockSetShips(jest.fn(() => {}));
+
     const defaultShips: Ship[] = [
       new Ship({ x: 0, y: 0 }, 'horizontal', 2),
       new Ship({ x: 3, y: 3 }, 'vertical', 3),
     ];
 
-    const socket = await createInitializedGame();
-    await socket.setNick('player1');
+    const [player1, player2] = await createPlayersSockets();
 
-    await socket.setShips(defaultShips);
+    await player1.setShips(defaultShips);
 
-    expect(socketServer.game?.getPlayerShips('player1')).toHaveLength(2);
+    expect(gameService.setShips).toHaveBeenCalledWith('player1', defaultShips);
 
-    socket.close();
+    await player1.close();
+    await player2.close();
   });
 
+  it('allows a player to shoot', async () => {
+    mockCreateGame(new Game(10, []));
+    mockShoot(jest.fn(() => ShotResult.hit));
+
+    const [player1, player2] = await createPlayersSockets();
+
+    await player1.shoot({ x: 1, y: 2 });
+
+    expect(gameService.shoot).toHaveBeenCalledWith('player1', { x: 1, y: 2 });
+
+    await player1.close();
+    await player2.close();
+  });
+
+  const mockGameService = (mock: Partial<GameService>) => {
+    Object.assign(gameService, mock);
+  };
+
+  const mockCreateGame = (game: Game) => {
+    mockGameService({
+      createGame: () => game,
+    });
+  };
+
+  const mockAddPlayer = (addPlayer: GameService['addPlayer']) => {
+    mockGameService({ addPlayer });
+  };
+
+  const mockSetShips = (setShips: GameService['setShips']) => {
+    mockGameService({ setShips });
+  };
+
+  const mockShoot = (shoot: GameService['shoot']) => {
+    mockGameService({ shoot });
+  };
+
   const createPlayerSocket = async () => {
-    const socket = new WebSocketClient(3000);
+    const socket = new WebSocketClient(port);
 
     await socket.onConnect();
 
     return socket;
   };
 
-  const createInitializedGame = async (): Promise<WebSocketClient> => {
-    const socket = await createPlayerSocket();
-    await socket.createGame(10, [2, 3]);
+  const createPlayersSockets = async () => {
+    const player1 = await createPlayerSocket();
+    const player2 = await createPlayerSocket();
 
-    return socket;
+    mockAddPlayer((nick) => ({ nick, board: new Board() }));
+
+    await player1.createGame(10, [2, 3]);
+    await player2.joinGame();
+
+    await player1.setNick('player1');
+    await player2.setNick('player2');
+
+    return [player1, player2];
   };
 });

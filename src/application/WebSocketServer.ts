@@ -1,44 +1,31 @@
-import { createServer } from 'http';
+import http from 'http';
 import { inject, injectable } from 'inversify';
 import { Server, Socket } from 'socket.io';
 
-import { Game } from '../domain/game';
+import { Cell } from '../domain/cell';
+import { GameService } from '../domain/GameService';
 import { Player } from '../domain/Player';
 import { Ship } from '../domain/ship';
 
 export const GameRepositorySymbol = Symbol.for('GameRepository');
 
-export interface GameRepository {
-  getGame(): Game | undefined;
-  setGame(game: Game): void;
-}
+export const HttpServerSymbol = Symbol.for('HttpServer');
 
 @injectable()
 export class WebSocketServer {
-  @inject(GameRepositorySymbol) private gameRepository!: GameRepository;
+  @inject(GameService)
+  private gameService!: GameService;
 
-  private server = createServer();
-  private socketServer = new Server(this.server);
-  private players: Record<string, Player> = {};
+  private socketServer: Server;
 
-  constructor() {
+  public players: Record<string, Player> = {};
+
+  constructor(
+    @inject(HttpServerSymbol)
+    private server: http.Server,
+  ) {
+    this.socketServer = new Server(this.server);
     this.socketServer.on('connection', this.handleConnection.bind(this));
-  }
-
-  get game() {
-    return this.gameRepository.getGame();
-  }
-
-  setShips(nick: string, ships: Ship[]) {
-    this.game?.setShips(nick, ships);
-  }
-
-  getPlayers(): Player[] {
-    if (!this.game) {
-      return [];
-    }
-
-    return this.game.players;
   }
 
   private handleConnection(socket: Socket) {
@@ -52,6 +39,7 @@ export class WebSocketServer {
 
           callback({ status: 'ok' });
         } catch (error) {
+          // console.log(error);
           callback({ status: 'ko', error: error.message });
         }
       });
@@ -61,6 +49,7 @@ export class WebSocketServer {
     registerHandler('JOIN_GAME', this.handleJoinGame.bind(this));
     registerHandler('SET_NICK', this.handleSetNick.bind(this));
     registerHandler('SET_SHIPS', this.handleSetShips.bind(this));
+    registerHandler('SHOOT', this.handleShoot.bind(this));
 
     socket.on('disconnect', () => {
       delete this.players[socket.id];
@@ -68,18 +57,17 @@ export class WebSocketServer {
   }
 
   private handleCreateGame(socket: Socket, { size, requiredShipsSizes }: any) {
-    const game = new Game(size, requiredShipsSizes, () => {});
+    this.gameService.createGame(size, requiredShipsSizes);
 
-    this.gameRepository.setGame(game);
-    game.addPlayer(socket.id);
+    const player = this.gameService.addPlayer(socket.id);
 
-    this.players[socket.id] = game.getPlayer(socket.id);
+    this.players[socket.id] = player;
   }
 
   private handleJoinGame(socket: Socket) {
-    this.game!.addPlayer(socket.id);
+    const player = this.gameService.addPlayer(socket.id);
 
-    this.players[socket.id] = this.game!.getPlayer(socket.id);
+    this.players[socket.id] = player;
   }
 
   private handleSetNick(socket: Socket, nick: unknown) {
@@ -91,31 +79,19 @@ export class WebSocketServer {
       throw new Error(`${nick} is already taken`);
     }
 
-    const player = this.game!.players.find(({ nick }) => nick === this.players[socket.id].nick);
+    const player = this.players[socket.id];
 
     player!.nick = nick as string;
   }
 
   private handleSetShips(socket: Socket, ships: unknown) {
-    this.setShips(
+    this.gameService.setShips(
       this.players[socket.id].nick,
       (ships as unknown[]).map((ship: any) => new Ship(ship.position, ship.direction, ship.size)),
     );
   }
 
-  listen(port: number, hostname: string) {
-    return new Promise<void>((resolve) => this.server.listen(port, hostname, resolve));
-  }
-
-  close() {
-    return new Promise<void>((resolve, reject) =>
-      this.server.close((err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }),
-    );
+  private handleShoot(socket: Socket, cell: unknown) {
+    this.gameService.shoot(this.players[socket.id].nick, cell as Cell);
   }
 }

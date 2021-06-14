@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test:jest": "jest",
-    "test:mocha": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register --spec 'src/**/*.spec.ts' --extension 'ts'",
+    "test:mocha": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register -r mocha-setup.ts --spec 'src/**/*.spec.ts' --extension 'ts'",
     "test": "yarn test:mocha"
   },
   "devDependencies": {
