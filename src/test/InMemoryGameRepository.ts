@@ -13,8 +13,4 @@ export class InMemoryGameRepository implements GameRepository {
   setGame(game: Game): void {
     this.game = game;
   }
-
-  reset() {
-    this.game = undefined;
-  }
 }

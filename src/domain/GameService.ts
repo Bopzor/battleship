@@ -7,17 +7,10 @@ import { PlayerAddedEvent } from './events/PlayerAddedEvent';
 import { ShipsSetEvent } from './events/ShipsSetEvent';
 import { ShotEvent } from './events/ShotEvent';
 import { Game, GameRepository, GameRepositorySymbol } from './Game';
+import { Notifier, NotifierSymbol } from './Notifier';
 import { Player, PlayerRepository, PlayerRepositorySymbol } from './Player';
 import { Ship } from './Ship';
 import { ShotResult } from './ShotResult';
-
-export type GameEvent = PlayerAddedEvent | ShipsSetEvent | ShotEvent | EndOfGameEvent;
-
-export interface Notifier {
-  notify(event: GameEvent): void;
-}
-
-export const NotifierSymbol = Symbol.for('Notifier');
 
 @injectable()
 export class GameService {

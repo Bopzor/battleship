@@ -4,6 +4,7 @@ import { Server, Socket } from 'socket.io';
 
 import { Cell } from '../domain/Cell';
 import { GameService } from '../domain/GameService';
+import { GameEvent, Notifier } from '../domain/Notifier';
 import { Player } from '../domain/Player';
 import { Ship } from '../domain/Ship';
 
@@ -12,7 +13,7 @@ export const GameRepositorySymbol = Symbol.for('GameRepository');
 export const HttpServerSymbol = Symbol.for('HttpServer');
 
 @injectable()
-export class WebSocketServer {
+export class WebSocketServer implements Notifier {
   @inject(GameService)
   private gameService!: GameService;
 
@@ -26,6 +27,10 @@ export class WebSocketServer {
   ) {
     this.socketServer = new Server(this.server);
     this.socketServer.on('connection', this.handleConnection.bind(this));
+  }
+
+  notify(event: GameEvent): void {
+    this.socketServer.emit('message', event);
   }
 
   private handleConnection(socket: Socket) {

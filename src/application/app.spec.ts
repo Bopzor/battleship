@@ -6,8 +6,10 @@ import * as jest from 'jest-mock';
 import { Board } from '../domain/Board';
 import { Cell } from '../domain/Cell';
 import { Direction } from '../domain/Direction';
+import { ShipsSetEvent } from '../domain/events/ShipsSetEvent';
 import { Game, GameRepository } from '../domain/Game';
-import { GameService, Notifier, NotifierSymbol } from '../domain/GameService';
+import { GameService } from '../domain/GameService';
+import { Notifier, NotifierSymbol } from '../domain/Notifier';
 import { PlayerRepository, PlayerRepositorySymbol } from '../domain/Player';
 import { Ship } from '../domain/Ship';
 import { ShotResult } from '../domain/ShotResult';
@@ -29,12 +31,12 @@ describe('Websocket', () => {
 
   let gameService: GameService;
 
-  before((done) => {
+  beforeEach((done) => {
     server = createServer();
     server.listen(port, 'localhost', done);
   });
 
-  after(function (done) {
+  afterEach(function (done) {
     this.timeout(1000000);
     server.close(done);
   });
@@ -53,10 +55,6 @@ describe('Websocket', () => {
     container.bind<Notifier>(NotifierSymbol).to(StubNotifier);
 
     socketServer = container.get(WebSocketServer);
-  });
-
-  beforeEach(() => {
-    gameRepository.reset();
   });
 
   describe('Socket connection', () => {
@@ -226,12 +224,14 @@ describe('Websocket', () => {
 
       const [player1, player2] = await createPlayersSockets();
 
-      await player1.shoot(new Cell(1, 2));
+      try {
+        await player1.shoot(new Cell(1, 2));
 
-      expect(gameService.shoot).toHaveBeenCalledWith('player1', { x: 1, y: 2 });
-
-      await player1.close();
-      await player2.close();
+        expect(gameService.shoot).toHaveBeenCalledWith('player1', { x: 1, y: 2 });
+      } finally {
+        await player1.close();
+        await player2.close();
+      }
     });
 
     it('notifies when an error occures during shot', async () => {
@@ -246,6 +246,25 @@ describe('Websocket', () => {
 
       try {
         await expect(player1.shoot(new Cell(0, 0))).rejects.toThrow('Shoting went wrong');
+      } finally {
+        await player1.close();
+        await player2.close();
+      }
+    });
+  });
+
+  describe('Socket messages emitting', () => {
+    it('sends a message to all players', async () => {
+      const player1 = await createPlayerSocket();
+      const player2 = await createPlayerSocket();
+
+      const shipsSetEvent = new ShipsSetEvent('player1');
+
+      try {
+        await socketServer.notify(shipsSetEvent);
+
+        await waitFor(() => expect(player1.lastEvent).toMatchObject({ type: shipsSetEvent.type }));
+        await waitFor(() => expect(player2.lastEvent).toMatchObject({ type: shipsSetEvent.type }));
       } finally {
         await player1.close();
         await player2.close();
@@ -296,5 +315,17 @@ describe('Websocket', () => {
     await player2.setNick('player2');
 
     return [player1, player2];
+  };
+
+  const waitFor = async (cb: () => unknown) => {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        cb();
+        break;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 1));
+      }
+    }
   };
 });

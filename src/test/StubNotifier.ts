@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 
-import { GameEvent, Notifier } from '../domain/GameService';
+import { GameEvent, Notifier } from '../domain/Notifier';
 
 @injectable()
 export class StubNotifier implements Notifier {

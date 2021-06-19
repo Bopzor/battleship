@@ -5,13 +5,20 @@ import { Ship } from '../domain/Ship';
 
 export class WebSocketClient {
   private socket: Socket;
+  private events: unknown[] = [];
 
   get id() {
     return this.socket.id;
   }
 
+  get lastEvent() {
+    return this.events[this.events.length - 1];
+  }
+
   constructor(port: number) {
     this.socket = io(`ws://localhost:${port}`);
+
+    this.socket.on('message', this.onEvent.bind(this));
   }
 
   setNick(...args: [string] | unknown[]) {
@@ -36,6 +43,10 @@ export class WebSocketClient {
 
   onConnect() {
     return new Promise<void>((resolve) => this.socket.on('connect', resolve));
+  }
+
+  onEvent(event: unknown) {
+    this.events.push(event);
   }
 
   async close() {
