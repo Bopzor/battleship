@@ -1,5 +1,5 @@
-import { Cell } from './cell';
-import { Ship } from './ship';
+import { Cell } from './Cell';
+import { Ship } from './Ship';
 import { ShotResult } from './ShotResult';
 import { cellsContain } from './utils';
 
@@ -10,7 +10,7 @@ export class Board {
   shoot(cell: Cell): ShotResult {
     this.shots.push(cell);
 
-    const ship = this.getShipAt(cell.x, cell.y);
+    const ship = this.getShipAt(cell);
 
     if (ship) {
       if (ship.isSank(this.shots)) {
@@ -27,9 +27,9 @@ export class Board {
     return this.ships.every((ship) => ship.isSank(this.shots));
   }
 
-  getShipAt(x: number, y: number): Ship | undefined {
+  getShipAt(cell: Cell): Ship | undefined {
     return this.ships.find((ship) => {
-      return cellsContain(ship.cells, { x, y });
+      return cellsContain(ship.cells, cell);
     });
   }
 }

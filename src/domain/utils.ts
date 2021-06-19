@@ -1,13 +1,4 @@
-import { Cell } from './cell';
-import { Direction } from './ship';
-
-export const isHorizontal = (direction: Direction): boolean => {
-  return direction === 'horizontal';
-};
-
-export const isVertical = (direction: Direction): boolean => {
-  return direction === 'vertical';
-};
+import { Cell } from './Cell';
 
 export const areArraysEquivalent = <T>(left: Array<T>, right: Array<T>) => {
   if (left.length !== right.length) {

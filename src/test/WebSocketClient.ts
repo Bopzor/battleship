@@ -1,7 +1,7 @@
 import io, { Socket } from 'socket.io-client';
 
-import { Cell } from '../domain/cell';
-import { Ship } from '../domain/ship';
+import { Cell } from '../domain/Cell';
+import { Ship } from '../domain/Ship';
 
 export class WebSocketClient {
   private socket: Socket;

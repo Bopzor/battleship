@@ -2,10 +2,10 @@ import http from 'http';
 import { inject, injectable } from 'inversify';
 import { Server, Socket } from 'socket.io';
 
-import { Cell } from '../domain/cell';
+import { Cell } from '../domain/Cell';
 import { GameService } from '../domain/GameService';
 import { Player } from '../domain/Player';
-import { Ship } from '../domain/ship';
+import { Ship } from '../domain/Ship';
 
 export const GameRepositorySymbol = Symbol.for('GameRepository');
 
@@ -78,25 +78,25 @@ export class WebSocketServer {
     if (
       Object.values(this.players)
         .map(({ nick }) => nick)
-        .includes(nick as string)
+        .includes(nick)
     ) {
       throw new Error(`${nick} is already taken`);
     }
 
     const player = this.players[socket.id];
 
-    player!.nick = nick as string;
+    player!.nick = nick;
   }
 
-  private handleSetShips(socket: Socket, rawData: unknown) {
-    if (!Array.isArray(rawData)) {
+  private handleSetShips(socket: Socket, payload: unknown) {
+    if (!Array.isArray(payload)) {
       throw new Error('Given ships do not match Ship format');
     }
 
     let ships: Ship[];
 
     try {
-      ships = rawData.map((ship) => Ship.create(ship));
+      ships = payload.map((ship) => Ship.create(ship));
     } catch {
       throw new Error('Given ships do not match Ship format');
     }
@@ -104,7 +104,7 @@ export class WebSocketServer {
     this.gameService.setShips(this.players[socket.id].nick, ships);
   }
 
-  private handleShoot(socket: Socket, cell: unknown) {
-    this.gameService.shoot(this.players[socket.id].nick, cell as Cell);
+  private handleShoot(socket: Socket, payload: unknown) {
+    this.gameService.shoot(this.players[socket.id].nick, Cell.create(payload));
   }
 }

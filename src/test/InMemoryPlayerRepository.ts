@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 
-import { Board } from '../domain/board';
+import { Board } from '../domain/Board';
 import { Player, PlayerRepository } from '../domain/Player';
 
 @injectable()

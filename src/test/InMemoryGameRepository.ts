@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 
-import { Game, GameRepository } from '../domain/game';
+import { Game, GameRepository } from '../domain/Game';
 
 @injectable()
 export class InMemoryGameRepository implements GameRepository {

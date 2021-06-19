@@ -1,6 +1,6 @@
-import { Cell } from './cell';
+import { Cell } from './Cell';
 import { Player } from './Player';
-import { Ship } from './ship';
+import { Ship } from './Ship';
 import { areArraysEquivalent } from './utils';
 
 export interface GameRepository {

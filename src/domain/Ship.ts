@@ -1,7 +1,6 @@
-import { Cell } from './cell';
-import { cellsContain, isHorizontal, isVertical } from './utils';
-
-export type Direction = 'horizontal' | 'vertical';
+import { Cell } from './Cell';
+import { Direction } from './Direction';
+import { cellsContain } from './utils';
 
 export class Ship {
   constructor(private position: Cell, private direction: Direction, public size: number) {}
@@ -14,28 +13,28 @@ export class Ship {
     // prettier-ignore
     const { position: { x, y }, size, direction } = this;
 
-    const maxX = isHorizontal(direction) ? x + size : x;
-    const maxY = isVertical(direction) ? y + size : y;
+    const maxX = direction.isHorizontal() ? x + size : x;
+    const maxY = direction.isVertical() ? y + size : y;
 
     return maxX < boardSize && maxY < boardSize && x >= 0 && y >= 0;
   }
 
   get cells(): Cell[] {
     const { size, position, direction } = this;
-    const cells = [];
+    const cells: Cell[] = [];
 
     for (let i = 0; i < size; i++) {
-      const cell = { ...position };
+      let { x, y } = position;
 
-      if (isHorizontal(direction)) {
-        cell.x += i;
+      if (direction.isHorizontal()) {
+        x += i;
       }
 
-      if (isVertical(direction)) {
-        cell.y += i;
+      if (direction.isVertical()) {
+        y += i;
       }
 
-      cells.push(cell);
+      cells.push(new Cell(x, y));
     }
 
     return cells;
@@ -48,23 +47,10 @@ export class Ship {
 
     const { position, direction, size } = rawData;
 
-    if (
-      position === null ||
-      typeof position !== 'object' ||
-      typeof position.x !== 'number' ||
-      typeof position.y !== 'number'
-    ) {
-      throw new Error('Invalid ship format.');
-    }
-
-    if (!['horizontal', 'vertical'].includes(direction)) {
-      throw new Error('Invalid ship format.');
-    }
-
     if (typeof size !== 'number' || size !== Math.floor(size)) {
       throw new Error('Invalid ship format.');
     }
 
-    return new Ship(position, direction, size);
+    return new Ship(Cell.create(position), Direction.create(direction), size);
   }
 }

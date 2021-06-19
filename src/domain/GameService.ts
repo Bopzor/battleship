@@ -1,14 +1,14 @@
 import { inject, injectable } from 'inversify';
 
-import { Board } from './board';
-import { Cell } from './cell';
+import { Board } from './Board';
+import { Cell } from './Cell';
 import { EndOfGameEvent } from './events/EndOfGameEvent';
 import { PlayerAddedEvent } from './events/PlayerAddedEvent';
 import { ShipsSetEvent } from './events/ShipsSetEvent';
 import { ShotEvent } from './events/ShotEvent';
-import { Game, GameRepository, GameRepositorySymbol } from './game';
+import { Game, GameRepository, GameRepositorySymbol } from './Game';
 import { Player, PlayerRepository, PlayerRepositorySymbol } from './Player';
-import { Ship } from './ship';
+import { Ship } from './Ship';
 import { ShotResult } from './ShotResult';
 
 export type GameEvent = PlayerAddedEvent | ShipsSetEvent | ShotEvent | EndOfGameEvent;

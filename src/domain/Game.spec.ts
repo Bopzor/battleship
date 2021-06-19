@@ -5,12 +5,13 @@ import { InMemoryGameRepository } from '../test/InMemoryGameRepository';
 import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
 import { StubNotifier } from '../test/StubNotifier';
 
-import { Board } from './board';
-import { Cell } from './cell';
-import { Game, GameRepository, GameRepositorySymbol } from './game';
+import { Board } from './Board';
+import { Cell } from './Cell';
+import { Direction } from './Direction';
+import { Game, GameRepository, GameRepositorySymbol } from './Game';
 import { GameService, Notifier, NotifierSymbol } from './GameService';
 import { PlayerRepository, PlayerRepositorySymbol } from './Player';
-import { Ship } from './ship';
+import { Ship } from './Ship';
 import { ShotResult } from './ShotResult';
 
 before(() => {
@@ -63,8 +64,8 @@ describe('Battleship', () => {
   };
 
   const defaultShips: Ship[] = [
-    new Ship({ x: 0, y: 0 }, 'horizontal', 2),
-    new Ship({ x: 3, y: 3 }, 'vertical', 3),
+    new Ship(new Cell(0, 0), new Direction('horizontal'), 2),
+    new Ship(new Cell(3, 3), new Direction('vertical'), 3),
   ];
 
   describe('Game initialization', () => {
@@ -132,14 +133,14 @@ describe('Battleship', () => {
       const expectError = expectSetShipsError('Some ships are outside the boundaries', game);
 
       // position outside
-      expectError(new Ship({ x: 10, y: 1 }, 'horizontal', 3));
-      expectError(new Ship({ x: 0, y: 10 }, 'horizontal', 3));
-      expectError(new Ship({ x: 0, y: -5 }, 'horizontal', 3));
-      expectError(new Ship({ x: -1, y: 10 }, 'horizontal', 3));
+      expectError(new Ship(new Cell(10, 1), new Direction('horizontal'), 3));
+      expectError(new Ship(new Cell(0, 10), new Direction('horizontal'), 3));
+      expectError(new Ship(new Cell(0, -5), new Direction('horizontal'), 3));
+      expectError(new Ship(new Cell(-1, 10), new Direction('horizontal'), 3));
 
       // position + size outside
-      expectError(new Ship({ x: 2, y: 1 }, 'horizontal', 3));
-      expectError(new Ship({ x: 4, y: 2 }, 'vertical', 3));
+      expectError(new Ship(new Cell(2, 1), new Direction('horizontal'), 3));
+      expectError(new Ship(new Cell(4, 2), new Direction('vertical'), 3));
     });
 
     it('prevents to set overlaping ships', () => {
@@ -149,7 +150,10 @@ describe('Battleship', () => {
         game,
       );
 
-      expectError(new Ship({ x: 0, y: 0 }, 'vertical', 3), new Ship({ x: 0, y: 0 }, 'vertical', 2));
+      expectError(
+        new Ship(new Cell(0, 0), new Direction('vertical'), 3),
+        new Ship(new Cell(0, 0), new Direction('vertical'), 2),
+      );
     });
 
     it("prevents to set invalid ships's position on the board", () => {
@@ -159,15 +163,21 @@ describe('Battleship', () => {
         game,
       );
 
-      expectError(new Ship({ x: 0, y: 0 }, 'vertical', 3));
-      expectError(new Ship({ x: 0, y: 0 }, 'vertical', 3), new Ship({ x: 2, y: 0 }, 'vertical', 3));
+      expectError(new Ship(new Cell(0, 0), new Direction('vertical'), 3));
+      expectError(
+        new Ship(new Cell(0, 0), new Direction('vertical'), 3),
+        new Ship(new Cell(2, 0), new Direction('vertical'), 3),
+      );
 
       const gameWithDuplicateShipsSizes = createInitializedGame(10, [3, 3]);
 
       expectSetShipsError(
         'Ships formation is not allowed, some do not meed the requirements',
         gameWithDuplicateShipsSizes,
-      )(new Ship({ x: 0, y: 0 }, 'vertical', 2), new Ship({ x: 2, y: 0 }, 'vertical', 3));
+      )(
+        new Ship(new Cell(0, 0), new Direction('vertical'), 2),
+        new Ship(new Cell(2, 0), new Direction('vertical'), 3),
+      );
     });
 
     const expectSetShipsError =
@@ -198,11 +208,11 @@ describe('Battleship', () => {
       createStartedGame();
 
       const turn = (cell: Cell, shotResult: ShotResult, expectEvent = true) => {
-        service.shoot('player1', { x: 1, y: 1 });
+        service.shoot('player1', new Cell(1, 1));
         expect(notifier.lastEvent).toEqual({
           type: 'SHOT',
           nick: 'player1',
-          cell: { x: 1, y: 1 },
+          cell: new Cell(1, 1),
           shotResult: ShotResult.missed,
         });
 
@@ -218,13 +228,13 @@ describe('Battleship', () => {
         }
       };
 
-      turn({ x: 1, y: 1 }, ShotResult.missed);
-      turn({ x: 0, y: 0 }, ShotResult.hit);
-      turn({ x: 1, y: 0 }, ShotResult.sank);
+      turn(new Cell(1, 1), ShotResult.missed);
+      turn(new Cell(0, 0), ShotResult.hit);
+      turn(new Cell(1, 0), ShotResult.sank);
 
-      turn({ x: 3, y: 3 }, ShotResult.hit);
-      turn({ x: 3, y: 4 }, ShotResult.hit);
-      turn({ x: 3, y: 5 }, ShotResult.sank, false);
+      turn(new Cell(3, 3), ShotResult.hit);
+      turn(new Cell(3, 4), ShotResult.hit);
+      turn(new Cell(3, 5), ShotResult.sank, false);
 
       expect(notifier.events[notifier.events.length - 2]).toEqual({
         type: 'SHOT',
@@ -242,35 +252,35 @@ describe('Battleship', () => {
     it('prevents to shoot if both players ships are not set', () => {
       createInitializedGame();
 
-      expect(() => service.shoot('player2', { x: 1, y: 1 })).toThrow('Game is not started.');
+      expect(() => service.shoot('player2', new Cell(1, 1))).toThrow('Game is not started.');
 
       service.setShips('player1', defaultShips);
 
-      expect(() => service.shoot('player2', { x: 1, y: 1 })).toThrow('Game is not started.');
+      expect(() => service.shoot('player2', new Cell(1, 1))).toThrow('Game is not started.');
     });
 
     it("prevents to shoot if it's not the player's turn", () => {
       createStartedGame();
 
-      expect(() => service.shoot('player2', { x: 1, y: 1 })).toThrow("It is not player2's turn.");
+      expect(() => service.shoot('player2', new Cell(1, 1))).toThrow("It is not player2's turn.");
     });
 
     it('prevents to shoot a cell that is not in game bound ', () => {
       createStartedGame();
 
-      expect(() => service.shoot('player1', { x: 10, y: 1 })).toThrow('Shot is out of bounds.');
-      expect(() => service.shoot('player1', { x: 0, y: 10 })).toThrow('Shot is out of bounds.');
-      expect(() => service.shoot('player1', { x: -5, y: 1 })).toThrow('Shot is out of bounds.');
-      expect(() => service.shoot('player1', { x: 5, y: -1 })).toThrow('Shot is out of bounds.');
+      expect(() => service.shoot('player1', new Cell(10, 1))).toThrow('Shot is out of bounds.');
+      expect(() => service.shoot('player1', new Cell(0, 10))).toThrow('Shot is out of bounds.');
+      expect(() => service.shoot('player1', new Cell(-5, 1))).toThrow('Shot is out of bounds.');
+      expect(() => service.shoot('player1', new Cell(5, -1))).toThrow('Shot is out of bounds.');
     });
 
     it('prevents to shoot when the game is finished', () => {
-      const ships = [new Ship({ x: 0, y: 0 }, 'horizontal', 1)];
+      const ships = [new Ship(new Cell(0, 0), new Direction('horizontal'), 1)];
       createStartedGame(ships, 10, [1]);
 
-      service.shoot('player1', { x: 0, y: 0 });
+      service.shoot('player1', new Cell(0, 0));
 
-      expect(() => service.shoot('player2', { x: 0, y: 1 })).toThrow('The game is finished.');
+      expect(() => service.shoot('player2', new Cell(0, 1))).toThrow('The game is finished.');
     });
   });
 });

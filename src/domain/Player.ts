@@ -1,4 +1,4 @@
-import { Board } from './board';
+import { Board } from './Board';
 
 export interface PlayerRepository {
   countPlayers(): number;

@@ -3,11 +3,13 @@ import { createServer, Server } from 'http';
 import { Container } from 'inversify';
 import * as jest from 'jest-mock';
 
-import { Board } from '../domain/board';
-import { Game, GameRepository } from '../domain/game';
+import { Board } from '../domain/Board';
+import { Cell } from '../domain/Cell';
+import { Direction } from '../domain/Direction';
+import { Game, GameRepository } from '../domain/Game';
 import { GameService, Notifier, NotifierSymbol } from '../domain/GameService';
 import { PlayerRepository, PlayerRepositorySymbol } from '../domain/Player';
-import { Ship } from '../domain/ship';
+import { Ship } from '../domain/Ship';
 import { ShotResult } from '../domain/ShotResult';
 import { InMemoryGameRepository } from '../test/InMemoryGameRepository';
 import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
@@ -154,18 +156,20 @@ describe('Websocket', () => {
       mockSetShips(jest.fn(() => {}));
 
       const defaultShips: Ship[] = [
-        new Ship({ x: 0, y: 0 }, 'horizontal', 2),
-        new Ship({ x: 3, y: 3 }, 'vertical', 3),
+        new Ship(new Cell(0, 0), new Direction('horizontal'), 2),
+        new Ship(new Cell(3, 3), new Direction('vertical'), 3),
       ];
 
       const [player1, player2] = await createPlayersSockets();
 
-      await player1.setShips(defaultShips);
+      try {
+        await player1.setShips(defaultShips);
 
-      expect(gameService.setShips).toHaveBeenCalledWith('player1', defaultShips);
-
-      await player1.close();
-      await player2.close();
+        expect(gameService.setShips).toHaveBeenCalledWith('player1', defaultShips);
+      } finally {
+        await player1.close();
+        await player2.close();
+      }
     });
 
     it('notifies when an error occures during ships placement', async () => {
@@ -206,10 +210,7 @@ describe('Websocket', () => {
         await expectError();
         await expectError([null]);
         await expectError([{}]);
-        await expectError([{ position: 'here', direction: 'horizontal', size: 2 }]);
-        await expectError([{ position: { x: 'x', y: 0 }, direction: 'horizontal', size: 2 }]);
-        await expectError([{ position: { x: 0, y: 0 }, direction: 'x', size: 2 }]);
-        await expectError([{ position: { x: 0, y: 0 }, direction: 'vertical', size: [] }]);
+        await expectError([{ position: { x: 0, y: 1 }, direction: 'vertical', size: [] }]);
         await expectError([{ position: { x: 0, y: 0 }, direction: 'vertical', size: 2.5 }]);
       } finally {
         await player1.close();
@@ -225,7 +226,7 @@ describe('Websocket', () => {
 
       const [player1, player2] = await createPlayersSockets();
 
-      await player1.shoot({ x: 1, y: 2 });
+      await player1.shoot(new Cell(1, 2));
 
       expect(gameService.shoot).toHaveBeenCalledWith('player1', { x: 1, y: 2 });
 
@@ -244,7 +245,7 @@ describe('Websocket', () => {
       const [player1, player2] = await createPlayersSockets();
 
       try {
-        await expect(player1.shoot({ x: 0, y: 0 })).rejects.toThrow('Shoting went wrong');
+        await expect(player1.shoot(new Cell(0, 0))).rejects.toThrow('Shoting went wrong');
       } finally {
         await player1.close();
         await player2.close();
