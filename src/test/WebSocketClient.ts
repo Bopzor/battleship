@@ -14,12 +14,12 @@ export class WebSocketClient {
     this.socket = io(`ws://localhost:${port}`);
   }
 
-  setNick(nick: string) {
-    return this.emit('SET_NICK', nick);
+  setNick(...args: [string] | unknown[]) {
+    return this.emit('SET_NICK', ...args);
   }
 
-  setShips(ships: Ship[]) {
-    return this.emit('SET_SHIPS', ships);
+  setShips(...args: [Ship[]] | unknown[]) {
+    return this.emit('SET_SHIPS', ...args);
   }
 
   createGame(size: number, requiredShipsSizes: number[]) {

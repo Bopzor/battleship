@@ -57,105 +57,199 @@ describe('Websocket', () => {
     gameRepository.reset();
   });
 
-  it('creates a websocket server and accept connections', async () => {
-    const socket = new WebSocketClient(port);
+  describe('Socket connection', () => {
+    it('creates a websocket server and accept connections', async () => {
+      const socket = new WebSocketClient(port);
 
-    await expect(socket.onConnect()).resolves.toBe(undefined);
+      await expect(socket.onConnect()).resolves.toBe(undefined);
 
-    socket.close();
+      socket.close();
+    });
   });
 
-  it("creates a game and add the player on player's connection", async () => {
-    const game = new Game(10, []);
-    mockCreateGame(game);
-    gameRepository.setGame(game);
+  describe('Game creation', () => {
+    it('creates a game and add the player', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
 
-    mockAddPlayer((nick) => ({ nick, board: new Board() }));
+      mockAddPlayer((nick) => ({ nick, board: new Board() }));
 
-    const player1 = await createPlayerSocket();
+      const player1 = await createPlayerSocket();
 
-    await player1.createGame(10, [2, 3]);
+      await player1.createGame(10, [2, 3]);
 
-    expect(socketServer.players[player1.id]).toBeTruthy();
+      expect(socketServer.players[player1.id]).toBeTruthy();
 
-    await player1.close();
+      await player1.close();
+    });
   });
 
-  it('allows a player to set his nick', async () => {
-    const game = new Game(10, []);
-    mockCreateGame(game);
-    gameRepository.setGame(game);
+  describe("Set player's nick", () => {
+    it('allows a player to set his nick', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
 
-    mockAddPlayer((nick) => ({ nick, board: new Board() }));
+      mockAddPlayer((nick) => ({ nick, board: new Board() }));
 
-    const player1 = await createPlayerSocket();
+      const player1 = await createPlayerSocket();
 
-    await player1.createGame(10, [2, 3]);
+      await player1.createGame(10, [2, 3]);
 
-    await player1.setNick('player1');
+      await player1.setNick('player1');
 
-    expect(socketServer.players[player1.id].nick).toEqual('player1');
+      expect(socketServer.players[player1.id].nick).toEqual('player1');
 
-    await player1.close();
+      await player1.close();
+    });
+
+    it('prevents a player to use a nick that is already taken', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
+
+      mockAddPlayer((nick) => ({ nick, board: new Board() }));
+
+      const player1 = await createPlayerSocket();
+      const player2 = await createPlayerSocket();
+
+      await player1.createGame(10, [2, 3]);
+      await player2.joinGame();
+
+      await player1.setNick('player1');
+
+      await expect(player1.setNick('player1')).rejects.toThrow('player1 is already taken');
+      await expect(player2.setNick('player1')).rejects.toThrow('player1 is already taken');
+
+      await player1.close();
+      await player2.close();
+    });
+
+    it('prevents to set a nick that is not a string', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
+
+      mockAddPlayer((nick) => ({ nick, board: new Board() }));
+
+      const player1 = await createPlayerSocket();
+      await player1.createGame(10, [2, 3]);
+
+      try {
+        await expect(player1.setNick({})).rejects.toThrow('Given nick is not a string.');
+      } finally {
+        await player1.close();
+      }
+    });
   });
 
-  it('prevents a player to use a nick that is already taken', async () => {
-    const game = new Game(10, []);
-    mockCreateGame(game);
-    gameRepository.setGame(game);
+  describe('Ships placement', () => {
+    it('allows a player to set his ships', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
 
-    mockAddPlayer((nick) => ({ nick, board: new Board() }));
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      mockSetShips(jest.fn(() => {}));
 
-    const player1 = await createPlayerSocket();
-    const player2 = await createPlayerSocket();
+      const defaultShips: Ship[] = [
+        new Ship({ x: 0, y: 0 }, 'horizontal', 2),
+        new Ship({ x: 3, y: 3 }, 'vertical', 3),
+      ];
 
-    await player1.createGame(10, [2, 3]);
-    await player2.joinGame();
+      const [player1, player2] = await createPlayersSockets();
 
-    await player1.setNick('player1');
+      await player1.setShips(defaultShips);
 
-    await expect(player1.setNick('player1')).rejects.toThrow('player1 is already taken');
-    await expect(player2.setNick('player1')).rejects.toThrow('player1 is already taken');
+      expect(gameService.setShips).toHaveBeenCalledWith('player1', defaultShips);
 
-    await player1.close();
-    await player2.close();
+      await player1.close();
+      await player2.close();
+    });
+
+    it('notifies when an error occures during ships placement', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
+
+      mockSetShips(
+        jest.fn().mockImplementation(() => {
+          throw new Error('Ships placement went wrong');
+        }),
+      );
+
+      const [player1, player2] = await createPlayersSockets();
+
+      try {
+        await expect(player1.setShips([])).rejects.toThrow('Ships placement went wrong');
+      } finally {
+        await player1.close();
+        await player2.close();
+      }
+    });
+
+    it('prevents to set wrongly formatted ships', async () => {
+      const game = new Game(10, []);
+      mockCreateGame(game);
+      gameRepository.setGame(game);
+
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      mockSetShips(jest.fn(() => {}));
+
+      const [player1, player2] = await createPlayersSockets();
+
+      const expectError = (...args: any[]) =>
+        expect(player1.setShips(...args)).rejects.toThrow('Given ships do not match Ship format');
+
+      try {
+        await expectError();
+        await expectError([null]);
+        await expectError([{}]);
+        await expectError([{ position: 'here', direction: 'horizontal', size: 2 }]);
+        await expectError([{ position: { x: 'x', y: 0 }, direction: 'horizontal', size: 2 }]);
+        await expectError([{ position: { x: 0, y: 0 }, direction: 'x', size: 2 }]);
+        await expectError([{ position: { x: 0, y: 0 }, direction: 'vertical', size: [] }]);
+        await expectError([{ position: { x: 0, y: 0 }, direction: 'vertical', size: 2.5 }]);
+      } finally {
+        await player1.close();
+        await player2.close();
+      }
+    });
   });
 
-  it('allows a player to set his ships', async () => {
-    const game = new Game(10, []);
-    mockCreateGame(game);
-    gameRepository.setGame(game);
+  describe('Shoot', () => {
+    it('allows a player to shoot', async () => {
+      mockCreateGame(new Game(10, []));
+      mockShoot(jest.fn(() => ShotResult.hit));
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    mockSetShips(jest.fn(() => {}));
+      const [player1, player2] = await createPlayersSockets();
 
-    const defaultShips: Ship[] = [
-      new Ship({ x: 0, y: 0 }, 'horizontal', 2),
-      new Ship({ x: 3, y: 3 }, 'vertical', 3),
-    ];
+      await player1.shoot({ x: 1, y: 2 });
 
-    const [player1, player2] = await createPlayersSockets();
+      expect(gameService.shoot).toHaveBeenCalledWith('player1', { x: 1, y: 2 });
 
-    await player1.setShips(defaultShips);
+      await player1.close();
+      await player2.close();
+    });
 
-    expect(gameService.setShips).toHaveBeenCalledWith('player1', defaultShips);
+    it('notifies when an error occures during shot', async () => {
+      mockCreateGame(new Game(10, []));
+      mockShoot(
+        jest.fn<ShotResult, []>().mockImplementation(() => {
+          throw new Error('Shoting went wrong');
+        }),
+      );
 
-    await player1.close();
-    await player2.close();
-  });
+      const [player1, player2] = await createPlayersSockets();
 
-  it('allows a player to shoot', async () => {
-    mockCreateGame(new Game(10, []));
-    mockShoot(jest.fn(() => ShotResult.hit));
-
-    const [player1, player2] = await createPlayersSockets();
-
-    await player1.shoot({ x: 1, y: 2 });
-
-    expect(gameService.shoot).toHaveBeenCalledWith('player1', { x: 1, y: 2 });
-
-    await player1.close();
-    await player2.close();
+      try {
+        await expect(player1.shoot({ x: 0, y: 0 })).rejects.toThrow('Shoting went wrong');
+      } finally {
+        await player1.close();
+        await player2.close();
+      }
+    });
   });
 
   const mockGameService = (mock: Partial<GameService>) => {

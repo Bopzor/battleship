@@ -71,6 +71,10 @@ export class WebSocketServer {
   }
 
   private handleSetNick(socket: Socket, nick: unknown) {
+    if (typeof nick !== 'string') {
+      throw new Error('Given nick is not a string.');
+    }
+
     if (
       Object.values(this.players)
         .map(({ nick }) => nick)
@@ -84,11 +88,20 @@ export class WebSocketServer {
     player!.nick = nick as string;
   }
 
-  private handleSetShips(socket: Socket, ships: unknown) {
-    this.gameService.setShips(
-      this.players[socket.id].nick,
-      (ships as unknown[]).map((ship: any) => new Ship(ship.position, ship.direction, ship.size)),
-    );
+  private handleSetShips(socket: Socket, rawData: unknown) {
+    if (!Array.isArray(rawData)) {
+      throw new Error('Given ships do not match Ship format');
+    }
+
+    let ships: Ship[];
+
+    try {
+      ships = rawData.map((ship) => Ship.create(ship));
+    } catch {
+      throw new Error('Given ships do not match Ship format');
+    }
+
+    this.gameService.setShips(this.players[socket.id].nick, ships);
   }
 
   private handleShoot(socket: Socket, cell: unknown) {

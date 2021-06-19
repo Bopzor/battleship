@@ -40,4 +40,31 @@ export class Ship {
 
     return cells;
   }
+
+  static create(rawData: any) {
+    if (!rawData || typeof rawData !== 'object') {
+      throw new Error('Invalid ship format.');
+    }
+
+    const { position, direction, size } = rawData;
+
+    if (
+      position === null ||
+      typeof position !== 'object' ||
+      typeof position.x !== 'number' ||
+      typeof position.y !== 'number'
+    ) {
+      throw new Error('Invalid ship format.');
+    }
+
+    if (!['horizontal', 'vertical'].includes(direction)) {
+      throw new Error('Invalid ship format.');
+    }
+
+    if (typeof size !== 'number' || size !== Math.floor(size)) {
+      throw new Error('Invalid ship format.');
+    }
+
+    return new Ship(position, direction, size);
+  }
 }
