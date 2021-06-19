@@ -8,8 +8,10 @@ import { GameEvent, Notifier } from '../domain/Notifier';
 import { Player } from '../domain/Player';
 import { Ship } from '../domain/Ship';
 
+/* istanbul ignore next */
 export const GameRepositorySymbol = Symbol.for('GameRepository');
 
+/* istanbul ignore next */
 export const HttpServerSymbol = Symbol.for('HttpServer');
 
 @injectable()

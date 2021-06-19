@@ -37,7 +37,6 @@ describe('Websocket', () => {
   });
 
   afterEach(function (done) {
-    this.timeout(1000000);
     server.close(done);
   });
 

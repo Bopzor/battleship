@@ -8,6 +8,7 @@ export interface GameRepository {
   setGame(game: Game): void;
 }
 
+/* istanbul ignore next */
 export const GameRepositorySymbol = Symbol.for('GameRepository');
 
 export class Game {

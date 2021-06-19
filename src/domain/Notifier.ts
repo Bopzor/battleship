@@ -9,4 +9,5 @@ export interface Notifier {
   notify(event: GameEvent): void;
 }
 
+/* istanbul ignore next */
 export const NotifierSymbol = Symbol.for('Notifier');

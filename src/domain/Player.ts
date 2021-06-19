@@ -7,6 +7,7 @@ export interface PlayerRepository {
   findAll(): Player[];
 }
 
+/* istanbul ignore next */
 export const PlayerRepositorySymbol = Symbol.for('PlayerRepository');
 
 export type Player = {

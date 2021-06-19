@@ -6,11 +6,13 @@
   "license": "MIT",
   "scripts": {
     "test:jest": "jest",
-    "test:mocha": "TS_NODE_TRANSPILE_ONLY=true mocha -r ts-node/register -r mocha-setup.ts --spec 'src/**/*.spec.ts' --extension 'ts'",
+    "test:coverage": "nyc mocha",
+    "test:mocha": "mocha",
     "test": "yarn test:mocha",
     "build": "tsc"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/chai": "^4.2.18",
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.12.2",
@@ -21,8 +23,10 @@
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "jest": "^27.0.4",
     "mocha": "^9.0.0",
+    "nyc": "^15.1.0",
     "prettier": "^2.3.1",
     "socket.io-client": "^4.1.2",
+    "source-map-support": "^0.5.19",
     "ts-jest": "^27.0.3",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2"
