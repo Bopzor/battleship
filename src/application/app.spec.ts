@@ -16,6 +16,7 @@ import { ShotResult } from '../domain/ShotResult';
 import { InMemoryGameRepository } from '../test/InMemoryGameRepository';
 import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
 import { StubNotifier } from '../test/StubNotifier';
+import { waitFor } from '../test/waitFor';
 import { WebSocketClient } from '../test/WebSocketClient';
 
 import { GameRepositorySymbol, HttpServerSymbol, WebSocketServer } from './WebSocketServer';
@@ -314,17 +315,5 @@ describe('Websocket', () => {
     await player2.setNick('player2');
 
     return [player1, player2];
-  };
-
-  const waitFor = async (cb: () => unknown) => {
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      try {
-        cb();
-        break;
-      } catch {
-        await new Promise((resolve) => setTimeout(resolve, 1));
-      }
-    }
   };
 });

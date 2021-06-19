@@ -15,11 +15,6 @@ import { PlayerRepository, PlayerRepositorySymbol } from './Player';
 import { Ship } from './Ship';
 import { ShotResult } from './ShotResult';
 
-before(() => {
-  // clear terminal stdout
-  process.stdout.write('\x1Bc');
-});
-
 describe('Battleship', () => {
   let gameRepository: GameRepository;
   let playerRepository: PlayerRepository;
