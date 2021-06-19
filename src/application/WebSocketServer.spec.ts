@@ -23,7 +23,7 @@ import { GameRepositorySymbol, HttpServerSymbol, WebSocketServer } from './WebSo
 
 const port = 30001;
 
-describe('Websocket', () => {
+describe('WebSocket', () => {
   let container: Container;
 
   let server: Server;

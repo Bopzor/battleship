@@ -1,3 +1,9 @@
 node_modules
+yarn-error.log
 
-.vscode
+dist/
+
+.nyc_output/
+coverage/
+
+.vscode/

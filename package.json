@@ -5,6 +5,7 @@
   "author": "Bopzor <violaine.ballandin@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "test:jest": "jest",
     "test:coverage": "nyc mocha",
     "test:mocha": "mocha",

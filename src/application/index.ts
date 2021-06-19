@@ -10,12 +10,12 @@ import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
 
 import { GameRepositorySymbol, HttpServerSymbol, WebSocketServer } from './WebSocketServer';
 
-class WebsocketNotifier implements Notifier {
+class WebSocketNotifier implements Notifier {
   socketServer?: WebSocketServer;
 
   notify(event: GameEvent): void {
     if (!this.socketServer) {
-      throw new Error('WebsocketNotifier.socketServer is not set.');
+      throw new Error('WebSocketNotifier.socketServer is not set.');
     }
 
     this.socketServer.notify(event);
@@ -25,7 +25,7 @@ class WebsocketNotifier implements Notifier {
 export const bootstrap = () => {
   const container = new Container();
   const server = createServer();
-  const notifier = new WebsocketNotifier();
+  const notifier = new WebSocketNotifier();
 
   container.bind<Server>(HttpServerSymbol).toConstantValue(server);
 
