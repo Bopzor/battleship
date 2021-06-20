@@ -18,10 +18,10 @@ export interface AppState {
     connected: boolean;
     error: unknown;
   };
-  shoot: {
+  target: {
     shooting: boolean;
+    shootError: unknown;
     shots: Shot[];
-    error: unknown;
   };
   board: {
     opponentShots: Shot[];

@@ -2,10 +2,10 @@ import { combineReducers } from 'redux';
 
 import { boardReducer } from './boardReducer';
 import { serverReducer } from './serverReducer';
-import { shootReducer } from './shootReducer';
+import { targetReducer } from './targetReducer';
 
 export const rootReducer = combineReducers({
   server: serverReducer,
-  shoot: shootReducer,
+  target: targetReducer,
   board: boardReducer,
 });

@@ -9,25 +9,25 @@ import { shoot } from './shoot';
 describe('shoot', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
   let store: Store;
-  let expectShootState: ExpectStateSlice<'shoot'>;
+  let expectTargetState: ExpectStateSlice<'target'>;
 
   beforeEach(() => {
     battleshipGateway = new InMemoryBattleshipGateway();
     store = configureStore({ battleshipGateway });
-    expectShootState = expectStateSlice(store, 'shoot');
+    expectTargetState = expectStateSlice(store, 'target');
   });
 
   it("shoots at the opponent's ship", async () => {
     store.dispatch(shoot({ x: 1, y: 2 }));
 
-    expectShootState({
+    expectTargetState({
       shooting: true,
       shots: [],
     });
 
     await battleshipGateway.resolveShoot(ShotResult.missed);
 
-    expectShootState({
+    expectTargetState({
       shooting: false,
       shots: [{ position: { x: 1, y: 2 }, result: ShotResult.missed }],
     });
@@ -40,7 +40,7 @@ describe('shoot', () => {
     store.dispatch(shoot({ x: 3, y: 1 }));
     await battleshipGateway.resolveShoot(ShotResult.hit);
 
-    expectShootState({
+    expectTargetState({
       shooting: false,
       shots: [
         { position: { x: 1, y: 2 }, result: ShotResult.missed },
@@ -54,9 +54,9 @@ describe('shoot', () => {
 
     await battleshipGateway.rejectShoot('Nope.');
 
-    expectShootState({
+    expectTargetState({
       shooting: false,
-      error: 'Nope.',
+      shootError: 'Nope.',
       shots: [],
     });
   });

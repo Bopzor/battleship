@@ -1,15 +1,15 @@
 import { AppState } from '../AppState';
 import { AppActions } from '../types';
 
-type ShootState = AppState['shoot'];
+type ShootState = AppState['target'];
 
 const initialState: ShootState = {
   shooting: false,
   shots: [],
-  error: undefined,
+  shootError: undefined,
 };
 
-export const shootReducer = (state: ShootState = initialState, action: AppActions): ShootState => {
+export const targetReducer = (state: ShootState = initialState, action: AppActions): ShootState => {
   if (action.type === 'trigger shot') {
     return {
       ...state,
@@ -29,7 +29,7 @@ export const shootReducer = (state: ShootState = initialState, action: AppAction
     return {
       ...state,
       shooting: false,
-      error: action.payload,
+      shootError: action.payload,
     };
   }
 
