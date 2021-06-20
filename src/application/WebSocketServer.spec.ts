@@ -14,7 +14,7 @@ import { PlayerRepository, PlayerRepositorySymbol } from '../domain/Player';
 import { Ship } from '../domain/Ship';
 import { ShotResult } from '../domain/ShotResult';
 import { InMemoryGameRepository } from '../test/InMemoryGameRepository';
-import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
+import { InMemoryPlayerRepository } from '../test/InMemoryPlayerRepository';
 import { StubNotifier } from '../test/StubNotifier';
 import { waitFor } from '../test/waitFor';
 import { WebSocketClient } from '../test/WebSocketClient';
@@ -50,7 +50,7 @@ describe('WebSocket', () => {
     container.bind<GameService>(GameService).toConstantValue(gameService);
 
     container.bind<GameRepository>(GameRepositorySymbol).to(InMemoryGameRepository);
-    container.bind<PlayerRepository>(PlayerRepositorySymbol).to(InMemoryPlayerReposititory);
+    container.bind<PlayerRepository>(PlayerRepositorySymbol).to(InMemoryPlayerRepository);
     container.bind<WebSocketServer>(WebSocketServer).to(WebSocketServer);
     container.bind<Notifier>(NotifierSymbol).to(StubNotifier);
 
@@ -170,7 +170,7 @@ describe('WebSocket', () => {
       }
     });
 
-    it('notifies when an error occures during ships placement', async () => {
+    it('notifies when an error occurs during ships placement', async () => {
       const game = new Game(10, []);
       mockCreateGame(game);
       gameRepository.setGame(game);
@@ -234,18 +234,18 @@ describe('WebSocket', () => {
       }
     });
 
-    it('notifies when an error occures during shot', async () => {
+    it('notifies when an error occurs during shot', async () => {
       mockCreateGame(new Game(10, []));
       mockShoot(
         jest.fn<ShotResult, []>().mockImplementation(() => {
-          throw new Error('Shoting went wrong');
+          throw new Error('Shooting went wrong');
         }),
       );
 
       const [player1, player2] = await createPlayersSockets();
 
       try {
-        await expect(player1.shoot(new Cell(0, 0))).rejects.toThrow('Shoting went wrong');
+        await expect(player1.shoot(new Cell(0, 0))).rejects.toThrow('Shooting went wrong');
       } finally {
         await player1.close();
         await player2.close();

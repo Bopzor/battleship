@@ -64,8 +64,8 @@ export class Game {
       throw new Error('Ships formation is not allowed, some do not meed the requirements');
     }
 
-    if (this.areShipsOverlaping(ships)) {
-      throw new Error('Ships formation is not allowed, some are overlaping.');
+    if (this.areShipsOverlapping(ships)) {
+      throw new Error('Ships formation is not allowed, some are overlapping.');
     }
   }
 
@@ -73,7 +73,7 @@ export class Game {
     return this.currentPlayer?.nick === nick;
   }
 
-  private areShipsOverlaping(ships: Ship[]): boolean {
+  private areShipsOverlapping(ships: Ship[]): boolean {
     const cells = ships.map(({ cells }) => cells.map(({ x, y }) => `${x}:${y}`)).flat();
     const uniqCells = new Set(cells);
 

@@ -2,7 +2,7 @@ import expect from 'expect';
 import { Container } from 'inversify';
 
 import { InMemoryGameRepository } from '../test/InMemoryGameRepository';
-import { InMemoryPlayerReposititory } from '../test/InMemoryPlayerRepository';
+import { InMemoryPlayerRepository } from '../test/InMemoryPlayerRepository';
 import { StubNotifier } from '../test/StubNotifier';
 
 import { Board } from './Board';
@@ -32,7 +32,7 @@ describe('Battleship', () => {
 
     container
       .bind<PlayerRepository>(PlayerRepositorySymbol)
-      .to(InMemoryPlayerReposititory)
+      .to(InMemoryPlayerRepository)
       .inSingletonScope();
 
     container.bind<GameService>(GameService).to(GameService).inSingletonScope();
@@ -139,10 +139,10 @@ describe('Battleship', () => {
       expectError(new Ship(new Cell(4, 2), new Direction('vertical'), 3));
     });
 
-    it('prevents to set overlaping ships', () => {
+    it('prevents to set overlapping ships', () => {
       const game = createInitializedGame(10, [3, 2]);
       const expectError = expectSetShipsError(
-        'Ships formation is not allowed, some are overlaping',
+        'Ships formation is not allowed, some are overlapping',
         game,
       );
 
@@ -152,7 +152,7 @@ describe('Battleship', () => {
       );
     });
 
-    it("prevents to set invalid ships's position on the board", () => {
+    it("prevents to set invalid ships position on the board", () => {
       const game = createInitializedGame(10);
       const expectError = expectSetShipsError(
         'Ships formation is not allowed, some do not meed the requirements',

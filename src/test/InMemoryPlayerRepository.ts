@@ -4,7 +4,7 @@ import { Board } from '../domain/Board';
 import { Player, PlayerRepository } from '../domain/Player';
 
 @injectable()
-export class InMemoryPlayerReposititory implements PlayerRepository {
+export class InMemoryPlayerRepository implements PlayerRepository {
   private players: Player[] = [];
 
   countPlayers(): number {
