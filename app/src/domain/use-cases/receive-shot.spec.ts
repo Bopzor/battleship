@@ -1,46 +1,42 @@
-import expect from 'expect';
-
 import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-battleship-gateway';
 import { configureStore } from '../../redux';
-import { AppState, ShotResult } from '../../redux/AppState';
+import { ShotResult } from '../../redux/AppState';
 import { Store } from '../../redux/types';
+import { createShotEvent } from '../../test/createShotEvent';
+import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
 import { receiveShot } from './receive-shot';
 
 describe('receive shot', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
   let store: Store;
-  let initialState: AppState;
+  let expectBoardState: ExpectStateSlice<'board'>;
 
   beforeEach(() => {
     battleshipGateway = new InMemoryBattleshipGateway();
     store = configureStore({ battleshipGateway });
-    initialState = store.getState();
+    expectBoardState = expectStateSlice(store, 'board');
   });
 
-  const expectState = (partial: Partial<AppState['board']>) => {
-    expect(store.getState()).toEqual({
-      ...initialState,
-      board: {
-        ...initialState.board,
-        ...partial,
-      },
-    });
-  };
-
   it('receives a shot with its result', () => {
-    store.dispatch(receiveShot({ position: { x: 1, y: 2 }, result: ShotResult.missed }));
+    const event = createShotEvent({ cell: { x: 1, y: 2 } });
 
-    expectState({
+    store.dispatch(receiveShot(event));
+
+    expectBoardState({
       opponentShots: [{ position: { x: 1, y: 2 }, result: ShotResult.missed }],
     });
   });
 
   it('receives multiple shots', () => {
-    store.dispatch(receiveShot({ position: { x: 1, y: 2 }, result: ShotResult.missed }));
-    store.dispatch(receiveShot({ position: { x: 3, y: 1 }, result: ShotResult.hit }));
+    const events = [
+      createShotEvent({ cell: { x: 1, y: 2 }, shotResult: ShotResult.missed }),
+      createShotEvent({ cell: { x: 3, y: 1 }, shotResult: ShotResult.hit }),
+    ];
 
-    expectState({
+    events.forEach((event) => store.dispatch(receiveShot(event)));
+
+    expectBoardState({
       opponentShots: [
         { position: { x: 1, y: 2 }, result: ShotResult.missed },
         { position: { x: 3, y: 1 }, result: ShotResult.hit },

@@ -1,4 +1,8 @@
-import { BattleshipGateway } from '../../domain/gateways/battleship-gateway';
+import {
+  BattleshipEvent,
+  BattleshipGateway,
+  MessageHandler,
+} from '../../domain/gateways/battleship-gateway';
 import { ShotResult } from '../../redux/AppState';
 import { AsyncResult } from '../../shared/AsyncResult';
 
@@ -8,6 +12,16 @@ export class InMemoryBattleshipGateway implements BattleshipGateway {
   resolveConnectToServer = this._serverConnection.resolve;
   rejectConnectToServer = this._serverConnection.reject;
   connectToServer = this._serverConnection.register;
+
+  private _handlers: MessageHandler[] = [];
+
+  registerMessageHandler(handler: MessageHandler) {
+    this._handlers.push(handler);
+  }
+
+  sendEvent(event: BattleshipEvent) {
+    this._handlers.forEach((handler) => handler(event));
+  }
 
   private _shootResult = new AsyncResult<ShotResult>();
 

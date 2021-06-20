@@ -1,44 +1,33 @@
-import expect from 'expect';
-
 import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-battleship-gateway';
 import { configureStore } from '../../redux';
-import { AppState, ShotResult } from '../../redux/AppState';
+import { ShotResult } from '../../redux/AppState';
 import { Store } from '../../redux/types';
+import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
 import { shoot } from './shoot';
 
 describe('shoot', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
   let store: Store;
-  let initialState: AppState;
+  let expectShootState: ExpectStateSlice<'shoot'>;
 
   beforeEach(() => {
     battleshipGateway = new InMemoryBattleshipGateway();
     store = configureStore({ battleshipGateway });
-    initialState = store.getState();
+    expectShootState = expectStateSlice(store, 'shoot');
   });
-
-  const expectState = (partial: Partial<AppState['shoot']>) => {
-    expect(store.getState()).toEqual({
-      ...initialState,
-      shoot: {
-        ...initialState.shoot,
-        ...partial,
-      },
-    });
-  };
 
   it("shoots at the opponent's ship", async () => {
     store.dispatch(shoot({ x: 1, y: 2 }));
 
-    expectState({
+    expectShootState({
       shooting: true,
       shots: [],
     });
 
     await battleshipGateway.resolveShoot(ShotResult.missed);
 
-    expectState({
+    expectShootState({
       shooting: false,
       shots: [{ position: { x: 1, y: 2 }, result: ShotResult.missed }],
     });
@@ -51,7 +40,7 @@ describe('shoot', () => {
     store.dispatch(shoot({ x: 3, y: 1 }));
     await battleshipGateway.resolveShoot(ShotResult.hit);
 
-    expectState({
+    expectShootState({
       shooting: false,
       shots: [
         { position: { x: 1, y: 2 }, result: ShotResult.missed },
@@ -65,7 +54,7 @@ describe('shoot', () => {
 
     await battleshipGateway.rejectShoot('Nope.');
 
-    expectState({
+    expectShootState({
       shooting: false,
       error: 'Nope.',
       shots: [],

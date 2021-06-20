@@ -32,4 +32,5 @@ export function createAction<T extends string, P>(type: T, payload?: P) {
 
 export type AppActions = ConnectToServerActions | ShootActions | ReceiveShotActions;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UseCase = (...args: any[]) => ThunkAction<unknown, AppState, Dependencies, AppActions>;
