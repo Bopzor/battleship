@@ -2,7 +2,7 @@ export class AsyncResult<Value = void, Error = unknown> {
   private _resolve?: (value: Value) => void;
   private _reject?: (error: Error) => void;
 
-  register() {
+  register = () => {
     if (this._resolve || this._reject) {
       throw new Error('AsyncResult: already registered');
     }
@@ -11,7 +11,7 @@ export class AsyncResult<Value = void, Error = unknown> {
       this._resolve = resolve;
       this._reject = reject;
     });
-  }
+  };
 
   resolve = (value: Value) => {
     if (!this._resolve) {

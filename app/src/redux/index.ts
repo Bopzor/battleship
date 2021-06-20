@@ -2,7 +2,7 @@ import { applyMiddleware, createStore } from 'redux';
 import thunk, { ThunkMiddleware } from 'redux-thunk';
 
 import { AppState } from './AppState';
-import { rootReducer } from './reducer';
+import { rootReducer } from './reducers';
 import { AppActions, Dependencies } from './types';
 
 export const configureStore = (dependencies: Dependencies) => {

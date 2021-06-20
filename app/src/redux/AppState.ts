@@ -13,7 +13,13 @@ export interface Shot {
 }
 
 export interface AppState {
-  shooting: boolean;
-  shots: Shot[];
-  error: unknown;
+  server: {
+    connected: boolean;
+    error: unknown;
+  };
+  shoot: {
+    shooting: boolean;
+    shots: Shot[];
+    error: unknown;
+  };
 }

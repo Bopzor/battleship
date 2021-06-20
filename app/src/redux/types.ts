@@ -2,6 +2,7 @@ import { Action } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
 import { BattleshipGateway } from '../domain/gateways/battleship-gateway';
+import { Actions as ConnectToServerActions } from '../domain/use-cases/connect-to-server';
 import { Actions as ShootActions } from '../domain/use-cases/shoot';
 
 import { AppState } from './AppState';
@@ -28,6 +29,6 @@ export function createAction<T extends string, P>(type: T, payload?: P) {
   return { type };
 }
 
-export type AppActions = ShootActions;
+export type AppActions = ShootActions | ConnectToServerActions;
 
 export type UseCase = (...args: any[]) => ThunkAction<unknown, AppState, Dependencies, AppActions>;

@@ -1,13 +1,15 @@
-import { AppState } from './AppState';
-import { AppActions } from './types';
+import { AppState } from '../AppState';
+import { AppActions } from '../types';
 
-const initialState: AppState = {
+type ShootState = AppState['shoot'];
+
+const initialState: ShootState = {
   shooting: false,
   shots: [],
   error: undefined,
 };
 
-export const rootReducer = (state: AppState = initialState, action: AppActions): AppState => {
+export const shootReducer = (state: ShootState = initialState, action: AppActions): ShootState => {
   if (action.type === 'trigger shot') {
     return {
       ...state,
