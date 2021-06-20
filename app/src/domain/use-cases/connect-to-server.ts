@@ -1,6 +1,6 @@
 import { createAction, UseCase } from '../../redux/types';
 
-import { receiveShot } from './receive-shot';
+import { receiveEvent } from './receive-event';
 
 const serverConnectionError = (error: unknown) => createAction('server connection error', error);
 const connectedToServer = () => createAction('connected to server');
@@ -15,9 +15,7 @@ export const connectToServer: UseCase =
       dispatch(connectedToServer());
 
       battleshipGateway.registerMessageHandler((event) => {
-        if (event.type === 'SHOT') {
-          dispatch(receiveShot(event));
-        }
+        dispatch(receiveEvent(event));
       });
     } catch (error) {
       dispatch(serverConnectionError(error));

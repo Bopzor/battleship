@@ -5,9 +5,9 @@ import { Store } from '../../redux/types';
 import { createShotEvent } from '../../test/createShotEvent';
 import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
-import { receiveShot } from './receive-shot';
+import { receiveEvent } from './receive-event';
 
-describe('receive shot', () => {
+describe('receive event', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
   let store: Store;
   let expectBoardState: ExpectStateSlice<'board'>;
@@ -21,7 +21,7 @@ describe('receive shot', () => {
   it('receives a shot with its result', () => {
     const event = createShotEvent({ cell: { x: 1, y: 2 } });
 
-    store.dispatch(receiveShot(event));
+    store.dispatch(receiveEvent(event));
 
     expectBoardState({
       opponentShots: [{ position: { x: 1, y: 2 }, result: ShotResult.missed }],
@@ -34,7 +34,7 @@ describe('receive shot', () => {
       createShotEvent({ cell: { x: 3, y: 1 }, shotResult: ShotResult.hit }),
     ];
 
-    events.forEach((event) => store.dispatch(receiveShot(event)));
+    events.forEach((event) => store.dispatch(receiveEvent(event)));
 
     expectBoardState({
       opponentShots: [
