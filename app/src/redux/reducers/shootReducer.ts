@@ -21,7 +21,7 @@ export const shootReducer = (state: ShootState = initialState, action: AppAction
     return {
       ...state,
       shooting: false,
-      shots: [action.payload],
+      shots: [...state.shots, action.payload],
     };
   }
 

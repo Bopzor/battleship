@@ -5,6 +5,7 @@ export interface Cell {
 
 export enum ShotResult {
   'missed' = 'missed',
+  'hit' = 'hit',
 }
 
 export interface Shot {

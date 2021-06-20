@@ -44,6 +44,22 @@ describe('shoot', () => {
     });
   });
 
+  it('shoots multiple ships', async () => {
+    store.dispatch(shoot({ x: 1, y: 2 }));
+    await battleshipGateway.resolveShoot(ShotResult.missed);
+
+    store.dispatch(shoot({ x: 3, y: 1 }));
+    await battleshipGateway.resolveShoot(ShotResult.hit);
+
+    expectState({
+      shooting: false,
+      shots: [
+        { position: { x: 1, y: 2 }, result: ShotResult.missed },
+        { position: { x: 3, y: 1 }, result: ShotResult.hit },
+      ],
+    });
+  });
+
   it("fails to shoot at the opponent's ship", async () => {
     store.dispatch(shoot({ x: 1, y: 2 }));
 

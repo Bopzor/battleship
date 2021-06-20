@@ -10,7 +10,7 @@ const initialState: BoardState = {
 export const boardReducer = (state: BoardState = initialState, action: AppActions): BoardState => {
   if (action.type === 'shot received') {
     return {
-      opponentShots: [action.payload],
+      opponentShots: [...state.opponentShots, action.payload],
     };
   }
 

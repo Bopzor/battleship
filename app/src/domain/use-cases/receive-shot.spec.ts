@@ -35,4 +35,16 @@ describe('receive shot', () => {
       opponentShots: [{ position: { x: 1, y: 2 }, result: ShotResult.missed }],
     });
   });
+
+  it('receives multiple shots', () => {
+    store.dispatch(receiveShot({ position: { x: 1, y: 2 }, result: ShotResult.missed }));
+    store.dispatch(receiveShot({ position: { x: 3, y: 1 }, result: ShotResult.hit }));
+
+    expectState({
+      opponentShots: [
+        { position: { x: 1, y: 2 }, result: ShotResult.missed },
+        { position: { x: 3, y: 1 }, result: ShotResult.hit },
+      ],
+    });
+  });
 });
