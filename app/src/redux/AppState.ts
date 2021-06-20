@@ -22,4 +22,7 @@ export interface AppState {
     shots: Shot[];
     error: unknown;
   };
+  board: {
+    opponentShots: Shot[];
+  };
 }
