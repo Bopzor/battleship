@@ -2,7 +2,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "strict": true,
-    "module": "ES6",
-    "moduleResolution": "node"
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true
   }
 }
