@@ -10,7 +10,7 @@ import { Actions as ShootActions } from '../domain/use-cases/shoot';
 import { AppState } from './AppState';
 import { configureStore } from './index';
 
-export type Store = ReturnType<typeof configureStore>;
+export type BattleshipStore = ReturnType<typeof configureStore>;
 
 export interface Dependencies {
   battleshipGateway: BattleshipGateway;

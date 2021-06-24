@@ -1,13 +1,13 @@
 import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-battleship-gateway';
 import { configureStore } from '../../redux';
-import { Store } from '../../redux/types';
+import { BattleshipStore } from '../../redux/types';
 import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
 import { setNick } from './set-nick';
 
 describe('set nick', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
-  let store: Store;
+  let store: BattleshipStore;
   let expectPlayerState: ExpectStateSlice<'player'>;
 
   beforeEach(() => {

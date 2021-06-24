@@ -1,7 +1,7 @@
 import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-battleship-gateway';
 import { configureStore } from '../../redux';
 import { ShotResult } from '../../redux/AppState';
-import { Store } from '../../redux/types';
+import { BattleshipStore } from '../../redux/types';
 import { createNickSetEvent, createShotEvent } from '../../test/createEvents';
 import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
@@ -9,7 +9,7 @@ import { receiveEvent } from './receive-event';
 
 describe('receive event', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
-  let store: Store;
+  let store: BattleshipStore;
   let expectBoardState: ExpectStateSlice<'board'>;
   let expectTargetState: ExpectStateSlice<'target'>;
 

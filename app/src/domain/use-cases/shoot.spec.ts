@@ -1,14 +1,14 @@
 import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-battleship-gateway';
 import { configureStore } from '../../redux';
 import { ShotResult } from '../../redux/AppState';
-import { Store } from '../../redux/types';
+import { BattleshipStore } from '../../redux/types';
 import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
 import { shoot } from './shoot';
 
 describe('shoot', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
-  let store: Store;
+  let store: BattleshipStore;
   let expectTargetState: ExpectStateSlice<'target'>;
 
   beforeEach(() => {

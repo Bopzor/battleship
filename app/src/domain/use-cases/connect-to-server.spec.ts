@@ -3,14 +3,14 @@ import expect from 'expect';
 import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-battleship-gateway';
 import { configureStore } from '../../redux';
 import { AppState, ShotResult } from '../../redux/AppState';
-import { Store } from '../../redux/types';
+import { BattleshipStore } from '../../redux/types';
 import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
 import { connectToServer } from './connect-to-server';
 
 describe('connection', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
-  let store: Store;
+  let store: BattleshipStore;
   let initialState: AppState;
   let expectServerState: ExpectStateSlice<'server'>;
 
