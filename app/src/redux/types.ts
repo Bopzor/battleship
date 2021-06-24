@@ -4,6 +4,7 @@ import { ThunkAction } from 'redux-thunk';
 import { BattleshipGateway } from '../domain/gateways/battleship-gateway';
 import { Actions as ConnectToServerActions } from '../domain/use-cases/connect-to-server';
 import { Actions as ReceiveEventActions } from '../domain/use-cases/receive-event';
+import { Actions as SetNickActions } from '../domain/use-cases/set-nick';
 import { Actions as ShootActions } from '../domain/use-cases/shoot';
 
 import { AppState } from './AppState';
@@ -30,7 +31,11 @@ export function createAction<T extends string, P>(type: T, payload?: P) {
   return { type };
 }
 
-export type AppActions = ConnectToServerActions | ShootActions | ReceiveEventActions;
+export type AppActions =
+  | ConnectToServerActions
+  | ShootActions
+  | ReceiveEventActions
+  | SetNickActions;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UseCase = (...args: any[]) => ThunkAction<unknown, AppState, Dependencies, AppActions>;

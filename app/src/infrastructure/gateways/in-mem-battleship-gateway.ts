@@ -23,6 +23,9 @@ export class InMemoryBattleshipGateway implements BattleshipGateway {
     this._handlers.forEach((handler) => handler(event));
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  async setNick() {}
+
   private _shootResult = new AsyncResult<ShotResult>();
 
   resolveShoot = this._shootResult.resolve;

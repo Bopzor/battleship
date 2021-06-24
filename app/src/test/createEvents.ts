@@ -1,5 +1,11 @@
-import { ShotEvent } from '../domain/gateways/battleship-gateway';
+import { NickSetEvent, ShotEvent } from '../domain/gateways/battleship-gateway';
 import { ShotResult } from '../redux/AppState';
+
+export const createNickSetEvent = (partial: Partial<NickSetEvent> = {}): NickSetEvent => ({
+  type: 'NICK_SET',
+  nick: 'nick',
+  ...partial,
+});
 
 export const createShotEvent = (partial: Partial<ShotEvent> = {}): ShotEvent => ({
   type: 'SHOT',

@@ -14,11 +14,15 @@ export interface Shot {
 }
 
 export interface AppState {
+  player: {
+    nick?: string;
+  };
   server: {
     connected: boolean;
     error: unknown;
   };
   target: {
+    opponentNick?: string;
     shooting: boolean;
     shootError: unknown;
     shots: Shot[];

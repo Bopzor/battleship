@@ -1,15 +1,26 @@
 import { AppState } from '../AppState';
 import { AppActions } from '../types';
 
-type ShootState = AppState['target'];
+type TargetState = AppState['target'];
 
-const initialState: ShootState = {
+const initialState: TargetState = {
+  opponentNick: undefined,
   shooting: false,
   shots: [],
   shootError: undefined,
 };
 
-export const targetReducer = (state: ShootState = initialState, action: AppActions): ShootState => {
+export const targetReducer = (
+  state: TargetState = initialState,
+  action: AppActions,
+): TargetState => {
+  if (action.type === 'opponent nick set') {
+    return {
+      ...state,
+      opponentNick: action.payload,
+    };
+  }
+
   if (action.type === 'trigger shot') {
     return {
       ...state,

@@ -2,7 +2,7 @@ import { InMemoryBattleshipGateway } from '../../infrastructure/gateways/in-mem-
 import { configureStore } from '../../redux';
 import { ShotResult } from '../../redux/AppState';
 import { Store } from '../../redux/types';
-import { createShotEvent } from '../../test/createShotEvent';
+import { createNickSetEvent, createShotEvent } from '../../test/createEvents';
 import { ExpectStateSlice, expectStateSlice } from '../../test/expectStateSlice';
 
 import { receiveEvent } from './receive-event';
@@ -11,11 +11,23 @@ describe('receive event', () => {
   let battleshipGateway: InMemoryBattleshipGateway;
   let store: Store;
   let expectBoardState: ExpectStateSlice<'board'>;
+  let expectTargetState: ExpectStateSlice<'target'>;
 
   beforeEach(() => {
     battleshipGateway = new InMemoryBattleshipGateway();
     store = configureStore({ battleshipGateway });
     expectBoardState = expectStateSlice(store, 'board');
+    expectTargetState = expectStateSlice(store, 'target');
+  });
+
+  it('receives a player nick changed event', () => {
+    const event = createNickSetEvent({ nick: 'nilscox' });
+
+    store.dispatch(receiveEvent(event));
+
+    expectTargetState({
+      opponentNick: 'nilscox',
+    });
   });
 
   it('receives a shot with its result', () => {
