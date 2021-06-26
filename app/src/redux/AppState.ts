@@ -3,6 +3,14 @@ export interface Cell {
   y: number;
 }
 
+export type Direction = 'vertical' | 'horizontal';
+
+export interface Ship {
+  position: Cell;
+  direction: Direction;
+  size: number;
+}
+
 export enum ShotResult {
   'missed' = 'missed',
   'hit' = 'hit',
@@ -28,6 +36,9 @@ export interface AppState {
     shots: Shot[];
   };
   board: {
+    preselectedShip?: Ship;
+    firstCell?: Cell;
+    ships: Ship[];
     opponentShots: Shot[];
   };
 }
