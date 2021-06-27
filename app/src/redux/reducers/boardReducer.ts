@@ -4,8 +4,9 @@ import { AppActions } from '../types';
 type BoardState = AppState['board'];
 
 const initialState: BoardState = {
-  preselectedShip: undefined,
   firstCell: undefined,
+  preselectedShip: undefined,
+  preselectedShipCanBePlaced: false,
   ships: [],
   opponentShots: [],
 };
@@ -27,7 +28,8 @@ export const boardReducer = (state: BoardState = initialState, action: AppAction
     case 'ship preselected':
       return {
         ...state,
-        preselectedShip: action.payload,
+        preselectedShip: action.payload.ship,
+        preselectedShipCanBePlaced: action.payload.canBePlaced,
       };
 
     case 'ship placed':
@@ -35,6 +37,7 @@ export const boardReducer = (state: BoardState = initialState, action: AppAction
         ...state,
         firstCell: undefined,
         preselectedShip: undefined,
+        preselectedShipCanBePlaced: false,
         ships: [action.payload],
       };
 

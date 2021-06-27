@@ -3,6 +3,7 @@ import { ThunkAction } from 'redux-thunk';
 
 import { BattleshipGateway } from '../domain/gateways/battleship-gateway';
 import { Actions as ConnectToServerActions } from '../domain/use-cases/connect-to-server';
+import { Actions as GetGameActions } from '../domain/use-cases/get-game';
 import { Actions as ReceiveEventActions } from '../domain/use-cases/receive-event';
 import { Actions as SelectCellActions } from '../domain/use-cases/select-cell';
 import { Actions as SetNickActions } from '../domain/use-cases/set-nick';
@@ -35,6 +36,7 @@ export function createAction<T extends string, P>(type: T, payload?: P) {
 export type AppActions =
   | ConnectToServerActions
   | ShootActions
+  | GetGameActions
   | ReceiveEventActions
   | SelectCellActions
   | SetNickActions;

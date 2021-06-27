@@ -1,15 +1,11 @@
+import { Ship } from '../domain/use-cases/select-cell';
+
 export interface Cell {
   x: number;
   y: number;
 }
 
 export type Direction = 'vertical' | 'horizontal';
-
-export interface Ship {
-  position: Cell;
-  direction: Direction;
-  size: number;
-}
 
 export enum ShotResult {
   'missed' = 'missed',
@@ -22,22 +18,30 @@ export interface Shot {
 }
 
 export interface AppState {
+  game: {
+    requiredShipsSizes?: number[];
+  };
+
   player: {
     nick?: string;
   };
+
   server: {
     connected: boolean;
     error: unknown;
   };
+
   target: {
     opponentNick?: string;
     shooting: boolean;
     shootError: unknown;
     shots: Shot[];
   };
+
   board: {
-    preselectedShip?: Ship;
     firstCell?: Cell;
+    preselectedShip?: Ship;
+    preselectedShipCanBePlaced: boolean;
     ships: Ship[];
     opponentShots: Shot[];
   };

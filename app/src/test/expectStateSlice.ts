@@ -3,17 +3,18 @@ import expect from 'expect';
 import { AppState } from '../redux/AppState';
 import { BattleshipStore } from '../redux/types';
 
-export type ExpectStateSlice<Slice extends keyof AppState> = (
-  partial: Partial<AppState[Slice]>,
-) => void;
+export interface ExpectStateSlice<Slice extends keyof AppState> {
+  (partial: Partial<AppState[Slice]>): void;
+  saveInitialState: () => void;
+}
 
 export const expectStateSlice = <Slice extends keyof AppState>(
   store: BattleshipStore,
   slice: Slice,
-): ExpectStateSlice<Slice> => {
-  const initialState = store.getState();
+) => {
+  let initialState = store.getState();
 
-  return (partial) => {
+  const expectSlice: ExpectStateSlice<Slice> = (partial) => {
     expect(store.getState()).toEqual({
       ...initialState,
       [slice]: {
@@ -22,4 +23,10 @@ export const expectStateSlice = <Slice extends keyof AppState>(
       },
     });
   };
+
+  expectSlice.saveInitialState = () => {
+    initialState = store.getState();
+  };
+
+  return expectSlice;
 };
