@@ -19,6 +19,7 @@ export interface Shot {
 
 export interface AppState {
   game: {
+    boardSize?: number;
     requiredShipsSizes?: number[];
   };
 

@@ -28,8 +28,8 @@ describe('select cell', () => {
 
   beforeEach(resetStore);
 
-  const setRequriedShipSizes = (requiredShipSizes: number[]) => {
-    store.dispatch(gameFetched({ requiredShipSizes }));
+  const setRequriedShipSizes = (requiredShipsSizes: number[]) => {
+    store.dispatch(gameFetched({ boardSize: 10, requiredShipsSizes }));
     expectBoardState.saveInitialState();
   };
 
@@ -64,6 +64,18 @@ describe('select cell', () => {
 
     expectBoardState({
       firstCell: { x: 1, y: 2 },
+      firstCellValidated: false,
+    });
+  });
+
+  it('selects another cell', () => {
+    setRequriedShipSizes([1]);
+    store.dispatch(firstCellSelected({ x: 1, y: 2 }));
+
+    store.dispatch(selectCell({ x: 1, y: 3 }));
+
+    expectBoardState({
+      firstCell: { x: 1, y: 3 },
       firstCellValidated: false,
     });
   });

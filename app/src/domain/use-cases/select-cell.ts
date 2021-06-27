@@ -64,6 +64,15 @@ export class Ship {
   canBePlaced(availibleSizes: number[]): boolean {
     return availibleSizes.some((size) => size === this.size);
   }
+
+  get cells(): Cell[] {
+    return Array(this.size)
+      .fill(null)
+      .map((_, n) => ({
+        x: this.position.x + (this.direction === 'horizontal' ? n : 0),
+        y: this.position.y + (this.direction === 'vertical' ? n : 0),
+      }));
+  }
 }
 
 export const selectCell: UseCase = (cell: Cell) => (dispatch, getState) => {
@@ -76,7 +85,7 @@ export const selectCell: UseCase = (cell: Cell) => (dispatch, getState) => {
     return;
   }
 
-  if (!board.firstCell) {
+  if (!board.firstCell || !board.firstCellValidated) {
     return dispatch(firstCellSelected(cell));
   }
 

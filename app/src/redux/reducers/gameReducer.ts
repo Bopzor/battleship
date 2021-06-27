@@ -4,6 +4,7 @@ import { AppActions } from '../types';
 type GameState = AppState['game'];
 
 const initialState: GameState = {
+  boardSize: undefined,
   requiredShipsSizes: undefined,
 };
 
@@ -11,7 +12,7 @@ export const gameReducer = (state: GameState = initialState, action: AppActions)
   if (action.type === 'game fetched') {
     return {
       ...state,
-      requiredShipsSizes: action.payload.requiredShipSizes,
+      ...action.payload,
     };
   }
 

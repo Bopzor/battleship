@@ -1,4 +1,5 @@
 import { applyMiddleware, createStore } from 'redux';
+import { composeWithDevTools } from 'redux-devtools-extension';
 import thunk, { ThunkMiddleware } from 'redux-thunk';
 
 import { AppState } from './AppState';
@@ -8,8 +9,14 @@ import { AppActions, Dependencies } from './types';
 export const configureStore = (dependencies: Dependencies) => {
   return createStore(
     rootReducer,
-    applyMiddleware(
-      thunk.withExtraArgument(dependencies) as ThunkMiddleware<AppState, AppActions, Dependencies>,
+    composeWithDevTools(
+      applyMiddleware(
+        thunk.withExtraArgument(dependencies) as ThunkMiddleware<
+          AppState,
+          AppActions,
+          Dependencies
+        >,
+      ),
     ),
   );
 };
