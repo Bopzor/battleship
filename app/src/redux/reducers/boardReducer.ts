@@ -5,6 +5,7 @@ type BoardState = AppState['board'];
 
 const initialState: BoardState = {
   firstCell: undefined,
+  firstCellValidated: false,
   preselectedShip: undefined,
   preselectedShipCanBePlaced: false,
   ships: [],
@@ -25,6 +26,12 @@ export const boardReducer = (state: BoardState = initialState, action: AppAction
         firstCell: action.payload,
       };
 
+    case 'first cell validated':
+      return {
+        ...state,
+        firstCellValidated: true,
+      };
+
     case 'ship preselected':
       return {
         ...state,
@@ -36,6 +43,7 @@ export const boardReducer = (state: BoardState = initialState, action: AppAction
       return {
         ...state,
         firstCell: undefined,
+        firstCellValidated: false,
         preselectedShip: undefined,
         preselectedShipCanBePlaced: false,
         ships: [action.payload],

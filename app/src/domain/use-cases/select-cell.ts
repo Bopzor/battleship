@@ -1,16 +1,17 @@
 import { Cell, Direction } from '../../redux/AppState';
 import { createAction, UseCase } from '../../redux/types';
 
-const firstCellSelected = (cell: Cell) => createAction('first cell selected', cell);
+export const firstCellSelected = (cell: Cell) => createAction('first cell selected', cell);
+export const firstCellValidated = () => createAction('first cell validated');
 
-const shipPreselected = (ship: Ship, canBePlaced: boolean) => {
+export const shipPreselected = (ship: Ship, canBePlaced: boolean) => {
   return createAction('ship preselected', { ship, canBePlaced });
 };
 
-const shipPlaced = (ship: Ship) => createAction('ship placed', ship);
+export const shipPlaced = (ship: Ship) => createAction('ship placed', ship);
 
 export type Actions = ReturnType<
-  typeof firstCellSelected | typeof shipPreselected | typeof shipPlaced
+  typeof firstCellSelected | typeof firstCellValidated | typeof shipPreselected | typeof shipPlaced
 >;
 
 const PI = Math.PI;
@@ -72,20 +73,24 @@ export class Ship {
 export const selectCell: UseCase = (cell: Cell) => (dispatch, getState) => {
   const { board, game } = getState();
 
-  if (!board.firstCell) {
+  if (!game.requiredShipsSizes?.length) {
     return;
+  }
+
+  if (!board.firstCell) {
+    return dispatch(firstCellSelected(cell));
   }
 
   const ship = Ship.fromCells(board.firstCell, cell);
 
-  dispatch(shipPreselected(ship, ship.canBePlaced(game.requiredShipsSizes ?? [])));
+  dispatch(shipPreselected(ship, ship.canBePlaced(game.requiredShipsSizes)));
 };
 
-export const validateCellSelection: UseCase = (cell: Cell) => (dispatch, getState) => {
+export const validateCellSelection: UseCase = () => (dispatch, getState) => {
   const { board } = getState();
 
-  if (!board.firstCell) {
-    return dispatch(firstCellSelected(cell));
+  if (!board.firstCellValidated) {
+    return dispatch(firstCellValidated());
   }
 
   if (board.preselectedShipCanBePlaced) {

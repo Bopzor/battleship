@@ -40,6 +40,7 @@ export interface AppState {
 
   board: {
     firstCell?: Cell;
+    firstCellValidated: boolean;
     preselectedShip?: Ship;
     preselectedShipCanBePlaced: boolean;
     ships: Ship[];
