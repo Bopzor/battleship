@@ -10,6 +10,7 @@ import {
   firstCellValidated,
   selectCell,
   Ship,
+  shipPlaced,
   shipPreselected,
   validateCellSelection,
 } from './select-cell';
@@ -35,6 +36,10 @@ describe('select cell', () => {
   const setFirstCell = (cell: Cell) => {
     store.dispatch(firstCellSelected(cell));
     store.dispatch(firstCellValidated());
+  };
+
+  const placeShip = (ship: Ship) => {
+    store.dispatch(shipPlaced(ship));
   };
 
   const expectShipPlacement = (c1: Cell, c2: Cell) => (ship: Ship) => {
@@ -153,19 +158,21 @@ describe('select cell', () => {
     expectShipPlacement({ x: 1, y: 4 }, { x: 6, y: 3 })(new Ship({ x: 1, y: 4 }, 'horizontal', 6));
   });
 
-  it('does not select a cell when there is no more ship remaining', () => {
+  it('does not select a cell when there is no ship to place', () => {
     store.dispatch(selectCell({ x: 1, y: 2 }));
+
     expectBoardState({ firstCell: undefined });
 
     setRequriedShipSizes([]);
     store.dispatch(selectCell({ x: 1, y: 2 }));
+
     expectBoardState({ firstCell: undefined });
   });
 
   it('does not allow to place a ship of an unavailable size', () => {
     setRequriedShipSizes([3]);
-
     setFirstCell({ x: 1, y: 2 });
+
     store.dispatch(selectCell({ x: 1, y: 3 }));
 
     expectBoardState({
@@ -173,6 +180,65 @@ describe('select cell', () => {
       firstCellValidated: true,
       preselectedShip: new Ship({ x: 1, y: 2 }, 'vertical', 2),
       preselectedShipCanBePlaced: false,
+    });
+  });
+
+  it('does not allow to place a ship when the size is not available anymore', () => {
+    const firstShip = new Ship({ x: 1, y: 2 }, 'vertical', 3);
+
+    setRequriedShipSizes([3, 2]);
+    placeShip(firstShip);
+    setFirstCell({ x: 2, y: 2 });
+
+    store.dispatch(selectCell({ x: 4, y: 2 }));
+
+    expectBoardState({
+      firstCell: { x: 2, y: 2 },
+      firstCellValidated: true,
+      ships: [firstShip],
+      preselectedShip: new Ship({ x: 2, y: 2 }, 'horizontal', 3),
+      preselectedShipCanBePlaced: false,
+    });
+  });
+
+  it('does not select a cell when there is no more ship remaining', () => {
+    const firstShip = new Ship({ x: 1, y: 2 }, 'vertical', 3);
+
+    setRequriedShipSizes([3]);
+    placeShip(firstShip);
+
+    store.dispatch(selectCell({ x: 4, y: 2 }));
+
+    expectBoardState({
+      firstCell: undefined,
+      ships: [firstShip],
+    });
+  });
+
+  it('places three ships', () => {
+    // prettier-ignore
+    const cells: Cell[][] = [
+      [{ x: 3, y: 3 }, { x: 7, y: 7 }],
+      [{ x: 4, y: 1 }, { x: 5, y: 5 }],
+      [{ x: 1, y: 2 }, { x: 3, y: 2 }],
+    ];
+
+    setRequriedShipSizes([3, 5, 5]);
+
+    for (const [a, b] of cells) {
+      store.dispatch(selectCell(a));
+      store.dispatch(validateCellSelection());
+
+      store.dispatch(selectCell(b));
+      store.dispatch(validateCellSelection());
+    }
+
+    expectBoardState({
+      ships: [
+        new Ship({ x: 3, y: 3 }, 'horizontal', 5),
+        new Ship({ x: 4, y: 1 }, 'vertical', 5),
+        new Ship({ x: 1, y: 2 }, 'horizontal', 3),
+      ],
     });
   });
 });

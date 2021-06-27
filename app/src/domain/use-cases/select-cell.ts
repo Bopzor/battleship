@@ -62,18 +62,17 @@ export class Ship {
   }
 
   canBePlaced(availibleSizes: number[]): boolean {
-    if (availibleSizes.length === 0) {
-      return false;
-    }
-
     return availibleSizes.some((size) => size === this.size);
   }
 }
 
 export const selectCell: UseCase = (cell: Cell) => (dispatch, getState) => {
   const { board, game } = getState();
+  const availableSizes = [...(game.requiredShipsSizes ?? [])];
 
-  if (!game.requiredShipsSizes?.length) {
+  board.ships.forEach(({ size }) => availableSizes.splice(availableSizes.indexOf(size), 1));
+
+  if (!availableSizes.length) {
     return;
   }
 
@@ -83,7 +82,7 @@ export const selectCell: UseCase = (cell: Cell) => (dispatch, getState) => {
 
   const ship = Ship.fromCells(board.firstCell, cell);
 
-  dispatch(shipPreselected(ship, ship.canBePlaced(game.requiredShipsSizes)));
+  dispatch(shipPreselected(ship, ship.canBePlaced(availableSizes)));
 };
 
 export const validateCellSelection: UseCase = () => (dispatch, getState) => {

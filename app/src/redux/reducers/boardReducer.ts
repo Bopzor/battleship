@@ -46,7 +46,7 @@ export const boardReducer = (state: BoardState = initialState, action: AppAction
         firstCellValidated: false,
         preselectedShip: undefined,
         preselectedShipCanBePlaced: false,
-        ships: [action.payload],
+        ships: [...state.ships, action.payload],
       };
 
     default:
